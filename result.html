@@ -202,7 +202,7 @@
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">心理测试</a>
+            <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
                 <li><a href="index.html">首页</a></li>
                 <li><a href="catalog.html">测试合集</a></li>
@@ -373,6 +373,7 @@
     </footer>
 
     <script src="js/utils.js"></script>
+    <script src="js/deploy-config.js"></script>
     <script>
         // 全局变量
         let quizData = null;
@@ -1364,101 +1365,23 @@
             document.documentElement.classList.add('safari-compat');
         }
 
-        // 根据当前域名自动判断部署平台
-        function getDeployUrl() {
-            const hostname = window.location.hostname;
-            const pathname = window.location.pathname;
-            
-            // GitHub Pages: originlab-2026.github.io/repo-name
-            if (hostname.includes('github.io')) {
-                const pathParts = pathname.split('/').filter(p => p);
-                if (pathParts.length > 0) {
-                    return `https://originlab-2026.github.io/${pathParts[0]}/`;
-                }
-                return 'https://originlab-2026.github.io/';
-            }
-            
-            // Vercel: repo-name.vercel.app
-            if (hostname.includes('vercel.app')) {
-                return `https://${hostname}/`;
-            }
-            
-            // Gitee Pages: originlab.gitee.io/repo-name
-            if (hostname.includes('gitee.io')) {
-                const pathParts = pathname.split('/').filter(p => p);
-                if (pathParts.length > 0) {
-                    return `https://originlab.gitee.io/${pathParts[0]}/`;
-                }
-                return 'https://originlab.gitee.io/';
-            }
-            
-            // 本地开发或自定义域名，使用当前完整路径
-            return window.location.origin + '/';
-        }
-
-        // 二维码配置 - 自动检测当前平台
+        // 二维码配置 - 使用部署配置模块
+        // 根据当前平台智能选择URL：Gitee环境→Gitee URL，GitHub环境→GitHub URL
+        const baseQRConfig = getQRCodeConfig();
         const QR_CONFIG = {
-            url: getDeployUrl(), // 动态获取当前平台URL
+            get url() {
+                // 使用部署模块的配置：当前平台优先，另一平台作为fallback
+                return baseQRConfig.url;
+            },
+            get fallbackUrl() {
+                return baseQRConfig.fallbackUrl;
+            },
             pdfSize: 50,      // PDF页眉二维码尺寸(px)
-            posterSize: 80    // 海报二维码尺寸(px)
+            posterSize: 80,   // 海报二维码尺寸(px)
+            get platform() {
+                return baseQRConfig.platform;
+            }
         };
-
-        // 生成二维码DataURL (使用 QRCode.js)
-        // 生成二维码 DataURL（异步）
-        async function generateQRCodeDataURL(text, size) {
-            return new Promise((resolve) => {
-                try {
-                    // 检查 QRCode 库
-                    if (typeof QRCode === 'undefined') {
-                        console.error('QRCode 库未加载');
-                        resolve(null);
-                        return;
-                    }
-                    
-                    // 创建临时容器
-                    const tempDiv = document.createElement('div');
-                    tempDiv.style.position = 'fixed';
-                    tempDiv.style.left = '-9999px';
-                    document.body.appendChild(tempDiv);
-                    
-                    // 使用 QRCode.js 生成二维码
-                    const qrcode = new QRCode(tempDiv, {
-                        text: text,
-                        width: size,
-                        height: size,
-                        colorDark: '#333333',
-                        colorLight: '#ffffff',
-                        correctLevel: QRCode.CorrectLevel.M
-                    });
-                    
-                    // 等待二维码生成完成
-                    setTimeout(() => {
-                        // 获取生成的图片
-                        const img = tempDiv.querySelector('img');
-                        if (img && img.src && img.src.startsWith('data:')) {
-                            document.body.removeChild(tempDiv);
-                            resolve(img.src);
-                            return;
-                        }
-                        
-                        // 如果没有 img，尝试 canvas
-                        const canvas = tempDiv.querySelector('canvas');
-                        if (canvas) {
-                            const dataUrl = canvas.toDataURL('image/png');
-                            document.body.removeChild(tempDiv);
-                            resolve(dataUrl);
-                            return;
-                        }
-                        
-                        document.body.removeChild(tempDiv);
-                        resolve(null);
-                    }, 100);
-                } catch (err) {
-                    console.error('二维码生成失败:', err);
-                    resolve(null);
-                }
-            });
-        }
 
         // 生成 PDF 报告
         async function generatePDF() {

@@ -1,4 +1,0 @@
-此文件为示例，实际验证时需要替换为微信提供的真实验证文件内容
-微信会提供类似 MP_verify_xxxxxxxxxxxxxxxx.txt 的文件
-需要将此文件放在网站根目录，确保可以通过以下URL访问：
-https://originlab-2026.github.io/love-decoding-test/MP_verify_xxxxxxxxxxxxxxxx.txt

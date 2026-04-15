@@ -10,7 +10,7 @@
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">心理测试</a>
+            <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
                 <li><a href="index.html">首页</a></li>
                 <li><a href="catalog.html" class="active">测试合集</a></li>
@@ -27,7 +27,7 @@
 
         <!-- 测试卡片网格 -->
         <div class="catalog-grid fade-in" id="catalog-grid">
-            <!-- 当前测试卡片 -->
+            <!-- 爱的解码测试卡片 -->
             <a href="index.html" class="catalog-card" id="current-quiz-card">
                 <div class="catalog-card-image" style="padding: 0; overflow: hidden;">
                     <img src="assets/images/首页.png" alt="爱的解码" style="width: 100%; height: 100%; object-fit: cover;">
@@ -39,6 +39,20 @@
                     </span>
                     <h3 id="card-title">爱的解码</h3>
                     <p id="card-desc">找到你发射和接收爱的信号</p>
+                </div>
+            </a>
+
+            <!-- 未来对象类型测试卡片 -->
+            <a href="javascript:void(0)" class="catalog-card" id="future-partner-card" onclick="navigateToFuturePartner()">
+                <div class="catalog-card-image" style="background: linear-gradient(160deg, #FF8C94 0%, #FFB6C1 40%, #FFD3B6 100%); display: flex; align-items: center; justify-content: center;">
+                    <div style="text-align: center; color: white;">
+                        <div style="font-size: 2.5rem; margin-bottom: 8px;">💑</div>
+                        <div style="font-size: 1.1rem; font-weight: 700; text-shadow: 0 1px 4px rgba(0,0,0,0.15);">未来对象类型</div>
+                    </div>
+                </div>
+                <div class="catalog-card-content">
+                    <h3>你未来对象是什么类型</h3>
+                    <p>探索你心中理想伴侣的8种类型，发现你的爱情密码</p>
                 </div>
             </a>
             
@@ -67,10 +81,25 @@
     </footer>
 
     <script src="js/utils.js"></script>
+    <script src="js/deploy-config.js"></script>
     <script>
+        // 跳转到未来伴侣测试 - 使用部署配置模块的Fallback机制
+        async function navigateToFuturePartner() {
+            const card = document.getElementById('future-partner-card');
+            
+            // 使用部署配置模块的navigateWithFallback函数
+            await navigateWithFallback('futurePartner', card);
+        }
+
         // 页面加载完成后执行
         document.addEventListener('DOMContentLoaded', () => {
             applyUIConfig();
+            
+            // 检测当前部署平台并记录日志
+            const platform = detectDeployPlatform();
+            console.log('当前部署平台:', platform);
+            console.log('当前部署URL:', getCurrentDeployUrl());
+            console.log('Gitee优先URL:', getGiteePriorityUrl());
         });
     </script>
 </body>

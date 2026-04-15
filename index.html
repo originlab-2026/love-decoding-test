@@ -2,15 +2,20 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>心理测试</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="format-detection" content="telephone=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="description" content="起源研究社心理测试 - 探索爱的五种语言，了解你的情感表达方式">
+    <meta name="keywords" content="心理测试,爱的五种语言,情感测试,性格测试">
+    <title>起源研究社 - 心理测试</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <!-- 导航栏 -->
     <nav class="navbar">
         <div class="container">
-            <a href="index.html" class="logo">心理测试</a>
+            <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">首页</a></li>
                 <li><a href="catalog.html">测试合集</a></li>
@@ -26,7 +31,7 @@
                 <source srcset="assets/images/首页.webp" type="image/webp">
                 <source srcset="assets/images/首页.png" type="image/png">
                 <img src="assets/images/首页.png?v=3" 
-                     alt="起源研究社心理测试 - 爱的五种语言" 
+                     alt="起源研究社心理测试 - 爱的解码" 
                      loading="eager"
                      fetchpriority="high"
                      decoding="async"
@@ -102,6 +107,7 @@
     </footer>
 
     <script src="js/utils.js"></script>
+    <script src="js/deploy-config.js"></script>
     <script>
         // 默认测试数据（备用）
         const defaultQuizData = {
@@ -553,6 +559,12 @@
         document.addEventListener('DOMContentLoaded', () => {
             applyUIConfig();
             loadQuizData();
+            
+            // 检测当前部署平台并记录日志
+            const platform = detectDeployPlatform();
+            console.log('当前部署平台:', platform);
+            console.log('当前部署URL:', getCurrentDeployUrl());
+            console.log('Gitee优先URL:', getGiteePriorityUrl());
         });
     </script>
 </body>
