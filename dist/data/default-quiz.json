@@ -1,0 +1,234 @@
+{
+  "quiz_name": "爱的五种语言测试",
+  "reference": "Gary Chapman 的五种爱语理论",
+  "nbr_question": 30,
+  "nbr_question_scale": 25,
+  "nbr_question_choice": 5,
+  "nbr_dimension": 5,
+  "dimensions": [
+    {
+      "dimension_id": "words_of_affirmation",
+      "dimension_name": "肯定的言词",
+      "description": "用语言表达爱和鼓励。对于这类人来说，一句真诚的赞美、鼓励的话语，比任何行动都更让他们感到被爱。"
+    },
+    {
+      "dimension_id": "quality_time",
+      "dimension_name": "精心的时刻",
+      "description": "重视一起度过的专注时间。对于这类人来说，伴侣全心全意的陪伴和倾听，是最能让他们感受到爱意的方式。"
+    },
+    {
+      "dimension_id": "receiving_gifts",
+      "dimension_name": "接受礼物",
+      "description": "通过礼物感受被爱。对于这类人来说，礼物是爱的物证，精心挑选的礼物能让他们深深感受到被重视和关爱。"
+    },
+    {
+      "dimension_id": "acts_of_service",
+      "dimension_name": "服务的行动",
+      "description": "通过行动、帮助对方表达爱。对于这类人来说，伴侣主动分担事务、提供帮助，是最实际的爱意表达。"
+    },
+    {
+      "dimension_id": "physical_touch",
+      "dimension_name": "身体的接触",
+      "description": "通过拥抱、牵手等身体接触感受爱。对于这类人来说，身体接触是情感连接的重要方式，能给他们带来安全感和亲密感。"
+    }
+  ],
+  "scale_questions": [
+    {
+      "question_id": "scale_001",
+      "dimension_id": "words_of_affirmation",
+      "question_text": "如果有人注意到我换了新发型或穿了新衣服并随口夸奖，我会暗自高兴很久。"
+    },
+    {
+      "question_id": "scale_002",
+      "dimension_id": "words_of_affirmation",
+      "question_text": "当我情绪低落时，一句鼓励的话比任何安慰都管用。"
+    },
+    {
+      "question_id": "scale_003",
+      "dimension_id": "words_of_affirmation",
+      "question_text": "我喜欢被人用\"你最棒了\"、\"你真厉害\"这样的话鼓励。"
+    },
+    {
+      "question_id": "scale_004",
+      "dimension_id": "words_of_affirmation",
+      "question_text": "做了让对方开心的事，如果对方明确表达感谢或欣赏，我会感到被爱。"
+    },
+    {
+      "question_id": "scale_005",
+      "dimension_id": "words_of_affirmation",
+      "question_text": "当我犹豫不决时，有人对我说\"我相信你，你可以的\"会让我很有信心。"
+    },
+    {
+      "question_id": "scale_006",
+      "dimension_id": "quality_time",
+      "question_text": "当只有两个人安静相处时，我比在热闹人群中更能感受到幸福和舒适。"
+    },
+    {
+      "question_id": "scale_007",
+      "dimension_id": "quality_time",
+      "question_text": "我在和对方一起做日常小事（如买菜、逛超市）时，比独自做这些事情更感到幸福。"
+    },
+    {
+      "question_id": "scale_008",
+      "dimension_id": "quality_time",
+      "question_text": "当我说话时，如果对方不专心倾听，我会感到不被重视，并难以继续说下去。"
+    },
+    {
+      "question_id": "scale_009",
+      "dimension_id": "quality_time",
+      "question_text": "当我与对方独处、完全不受打扰时，我比平时更能感受到亲密和满足。"
+    },
+    {
+      "question_id": "scale_010",
+      "dimension_id": "quality_time",
+      "question_text": "当有人主动询问我的一天并认真听我讲时，我比平时更能感受到亲密和关爱。"
+    },
+    {
+      "question_id": "scale_011",
+      "dimension_id": "receiving_gifts",
+      "question_text": "比起口头承诺，一份实实在在的礼物更能让我感受到爱意。"
+    },
+    {
+      "question_id": "scale_012",
+      "dimension_id": "receiving_gifts",
+      "question_text": "如果有人记得我不经意提过想要的东西，并在某个日子送给我，我会感动很久。"
+    },
+    {
+      "question_id": "scale_013",
+      "dimension_id": "receiving_gifts",
+      "question_text": "即使只是一束花、一盒巧克力，只要是用心准备的，我都会很开心。"
+    },
+    {
+      "question_id": "scale_014",
+      "dimension_id": "receiving_gifts",
+      "question_text": "如果有人在我没期待的时候突然送我小礼物，会让我特别惊喜。"
+    },
+    {
+      "question_id": "scale_015",
+      "dimension_id": "receiving_gifts",
+      "question_text": "对我来说，礼物是爱的物证，看到它就会想起送礼物的人。"
+    },
+    {
+      "question_id": "scale_016",
+      "dimension_id": "acts_of_service",
+      "question_text": "当我累了一天回家，看到有人帮我准备好饭菜时，我会感到心头一暖。"
+    },
+    {
+      "question_id": "scale_017",
+      "dimension_id": "acts_of_service",
+      "question_text": "比起甜言蜜语，主动帮我分担家务和工作，更让我觉得被爱着。"
+    },
+    {
+      "question_id": "scale_018",
+      "dimension_id": "acts_of_service",
+      "question_text": "如果有人在我开口之前察觉并帮忙，我会感到被理解和关心。"
+    },
+    {
+      "question_id": "scale_019",
+      "dimension_id": "acts_of_service",
+      "question_text": "在我生病或疲惫时，周到的照顾会让我感到被关心和珍惜。"
+    },
+    {
+      "question_id": "scale_020",
+      "dimension_id": "acts_of_service",
+      "question_text": "我看重的是行动，而不是承诺——说得再好听，不如做给我看。"
+    },
+    {
+      "question_id": "scale_021",
+      "dimension_id": "physical_touch",
+      "question_text": "我喜欢牵手、拥抱，这些身体接触让我感到安心。"
+    },
+    {
+      "question_id": "scale_022",
+      "dimension_id": "physical_touch",
+      "question_text": "如果一天没有亲密接触，我会觉得有所缺失。"
+    },
+    {
+      "question_id": "scale_023",
+      "dimension_id": "physical_touch",
+      "question_text": "当我难过时，一个拥抱比任何语言都更能安慰我。"
+    },
+    {
+      "question_id": "scale_024",
+      "dimension_id": "physical_touch",
+      "question_text": "走在路上时与某人挽手或搭肩，会让我感到亲密和安心。"
+    },
+    {
+      "question_id": "scale_025",
+      "dimension_id": "physical_touch",
+      "question_text": "即使只是拍拍肩、摸摸头这样的小动作，也能让我感到被爱。"
+    }
+  ],
+  "choice_questions": [
+    {
+      "question_id": "choice_001",
+      "question_text": "以下哪种情境让你感到被爱和幸福？",
+      "option_a_text": "有人认真看着我说\"有你真好\"",
+      "option_a_dim": "words_of_affirmation",
+      "option_b_text": "有人放下手机，专心听我讲今天的事",
+      "option_b_dim": "quality_time",
+      "option_c_text": "有人顺手给我带了喜欢喝的奶茶",
+      "option_c_dim": "receiving_gifts",
+      "option_d_text": "有人帮我按摩酸痛的肩膀",
+      "option_d_dim": "acts_of_service",
+      "option_e_text": "有人看电视时自然地把脚搭在你腿上",
+      "option_e_dim": "physical_touch"
+    },
+    {
+      "question_id": "choice_002",
+      "question_text": "当你生气或不开心时，哪种方式能让你感受到安抚和关爱？",
+      "option_a_text": "听到真诚的\"我错了，以后不会了\"",
+      "option_a_dim": "words_of_affirmation",
+      "option_b_text": "陪我做想做的事情，补偿我",
+      "option_b_dim": "quality_time",
+      "option_c_text": "买我喜欢的零食或礼物",
+      "option_c_dim": "receiving_gifts",
+      "option_d_text": "默默帮我搞定了一件麻烦事",
+      "option_d_dim": "acts_of_service",
+      "option_e_text": "轻轻抱抱我，直到我情绪平复",
+      "option_e_dim": "physical_touch"
+    },
+    {
+      "question_id": "choice_003",
+      "question_text": "当你感到对方很忙、陪伴不足时，哪种情况让你失落或难以接受？",
+      "option_a_text": "即使见面，对方也心不在焉，一直看手机",
+      "option_a_dim": "quality_time",
+      "option_b_text": "很久没听到对方夸我、说想我了",
+      "option_b_dim": "words_of_affirmation",
+      "option_c_text": "很久没有亲密的拥抱、亲吻",
+      "option_c_dim": "physical_touch",
+      "option_d_text": "对方顾不上帮忙，家里的琐事都堆给我",
+      "option_d_dim": "acts_of_service",
+      "option_e_text": "重要的日子被忘记",
+      "option_e_dim": "receiving_gifts"
+    },
+    {
+      "question_id": "choice_004",
+      "question_text": "以下哪种时刻让你感到被关心和爱护？",
+      "option_a_text": "听到：\"有你在真好，我很幸运遇到你。\"",
+      "option_a_dim": "words_of_affirmation",
+      "option_b_text": "有人特意抽时间陪我做喜欢的事情",
+      "option_b_dim": "quality_time",
+      "option_c_text": "有人下班路上顺手买了我爱吃的点心",
+      "option_c_dim": "receiving_gifts",
+      "option_d_text": "生病时得到周到照顾",
+      "option_d_dim": "acts_of_service",
+      "option_e_text": "睡前被轻轻拥抱",
+      "option_e_dim": "physical_touch"
+    },
+    {
+      "question_id": "choice_005",
+      "question_text": "在周末或空闲时间，哪种相处方式能让我感到被爱和满足？",
+      "option_a_text": "一起做顿饭，边吃边聊",
+      "option_a_dim": "quality_time",
+      "option_b_text": "收到小惊喜",
+      "option_b_dim": "receiving_gifts",
+      "option_c_text": "一起出去约会，逛街看电影",
+      "option_c_dim": "quality_time",
+      "option_d_text": "宅在家里，依偎在沙发上看剧",
+      "option_d_dim": "physical_touch",
+      "option_e_text": "有人主动帮我完成家务，让我彻底放松",
+      "option_e_dim": "acts_of_service"
+    }
+  ]
+}
