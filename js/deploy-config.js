@@ -6,10 +6,10 @@
 
 // 项目部署配置 - 双平台URL
 const DEPLOY_CONFIG = {
-    // Gitee Pages 配置（优先）
+    // 腾讯云托管配置（优先）
     gitee: {
-        baseUrl: 'https://originlab.gitee.io/love-decoding-test/',
-        hostname: 'originlab.gitee.io',
+        baseUrl: 'https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/originlab/',
+        hostname: 'originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com',
         faviconPath: 'favicon.ico'
     },
     // GitHub Pages 配置（Fallback）
@@ -22,7 +22,7 @@ const DEPLOY_CONFIG = {
     external: {
         // 未来伴侣测试
         futurePartner: {
-            gitee: 'https://originlab.gitee.io/future-partner-test/',
+            gitee: 'https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/future-partner/',
             github: 'https://originlab-2026.github.io/future-partner-test/'
         }
     }
@@ -36,6 +36,9 @@ function detectDeployPlatform() {
     const hostname = window.location.hostname;
     const pathname = window.location.pathname;
     
+    if (hostname.includes('tcloudbase.com')) {
+        return 'gitee';
+    }
     if (hostname.includes('gitee.io')) {
         return 'gitee';
     }
@@ -62,12 +65,12 @@ function getCurrentDeployUrl() {
     
     switch (platform) {
         case 'gitee':
-            // Gitee Pages: originlab.gitee.io/repo-name
+            // 腾讯云托管: originlab-xxx.ap-shanghai.app.tcloudbase.com/originlab
             const giteeParts = pathname.split('/').filter(p => p);
             if (giteeParts.length > 0) {
-                return `https://originlab.gitee.io/${giteeParts[0]}/`;
+                return `https://${hostname}/${giteeParts[0]}/`;
             }
-            return 'https://originlab.gitee.io/';
+            return `https://${hostname}/`;
             
         case 'github':
             // GitHub Pages: originlab-2026.github.io/repo-name

@@ -70,22 +70,21 @@ git push gitee main
 
 ## 步骤7: 开启 Pages 服务
 
+### 腾讯云托管 (推荐):
+1. 访问 https://console.cloud.tencent.com/tcb/hosting/index?envId=originlab-7gf19u3w6fdbabd9
+2. 点击 "部署" 或 "重新部署"
+3. 等待部署完成
+
 ### GitHub Pages:
 1. 访问 https://github.com/originlab-2026/love-decoding-test/settings/pages
 2. Source: Deploy from a branch
 3. Branch: main 或 master /(root)
 4. 点击 Save
 
-### Gitee Pages:
-1. 访问 https://gitee.com/originlab/love-decoding-test/pages
-2. 选择分支: main 或 master
-3. 选择目录: /
-4. 点击启动/更新
-
 ## 步骤8: 验证部署
 
 等待 1-5 分钟后访问：
-- Gitee: https://originlab.gitee.io/love-decoding-test/
+- 腾讯云托管: https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/originlab/
 - GitHub: https://originlab-2026.github.io/love-decoding-test/
 
 ## 故障排除

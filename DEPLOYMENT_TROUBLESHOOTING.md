@@ -57,13 +57,13 @@ git push gitee main
 4. 等待 1-2 分钟，刷新页面查看是否显示：
    > "Your site is published at https://originlab-2026.github.io/love-decoding-test/"
 
-### 第五步：检查 Gitee Pages 设置
+### 第五步：检查腾讯云托管设置
 
-1. 访问：https://gitee.com/originlab/love-decoding-test/pages
+1. 访问：https://console.cloud.tencent.com/tcb/hosting/index?envId=originlab-7gf19u3w6fdbabd9
 2. 检查以下设置：
-   - **部署分支**: `main` 或 `master` ✓
-   - **部署目录**: `/` ✓
-3. 点击 **"启动"** 或 **"更新"**
+   - **部署状态**: 显示 "部署成功" ✓
+   - **访问路径**: `/originlab` ✓
+3. 点击 **"重新部署"** 如果需要更新
 4. 等待 1-2 分钟
 
 ### 第六步：检查仓库是否为公开
@@ -88,7 +88,7 @@ https://github.com/originlab-2026/love-decoding-test/blob/main/index.html
 ```javascript
 const DEPLOY_CONFIG = {
     gitee: {
-        baseUrl: 'https://originlab.gitee.io/love-decoding-test/',
+        baseUrl: 'https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/originlab/',
         // ...
     },
     github: {
@@ -112,7 +112,7 @@ const DEPLOY_CONFIG = {
 ### 验证部署
 
 部署成功后，访问：
-- Gitee: https://originlab.gitee.io/love-decoding-test/
+- 腾讯云托管: https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/originlab/
 - GitHub: https://originlab-2026.github.io/love-decoding-test/
 
 在浏览器控制台验证：
