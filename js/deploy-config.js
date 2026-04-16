@@ -194,19 +194,27 @@ async function navigateWithFallback(target, triggerElement = null) {
  */
 function getQRCodeConfig() {
     const platform = detectDeployPlatform();
+    const hostname = window.location.hostname;
     
-    // 默认使用Gitee优先策略
+    // 默认使用腾讯云托管地址（Gitee配置）
     let qrUrl = DEPLOY_CONFIG.gitee.baseUrl;
     let fallbackUrl = DEPLOY_CONFIG.github.baseUrl;
     
-    // 如果当前在GitHub环境，检查是否需要使用GitHub URL
+    // 如果当前在GitHub环境，使用GitHub URL
     if (platform === 'github') {
-        // 异步检测Gitee可用性，但同步返回默认配置
-        // 实际使用时可以通过 checkGiteeAvailable 动态调整
         qrUrl = DEPLOY_CONFIG.github.baseUrl;
         fallbackUrl = DEPLOY_CONFIG.gitee.baseUrl;
-    } else if (platform === 'gitee') {
-        qrUrl = getCurrentDeployUrl();
+    } else if (platform === 'gitee' || platform === 'unknown') {
+        // 腾讯云托管环境或未知环境，使用当前部署URL或配置的腾讯云地址
+        // 优先使用当前页面的基础URL，确保二维码指向正确的地址
+        const currentBaseUrl = getCurrentDeployUrl();
+        // 如果当前URL是腾讯云托管地址，使用它
+        if (hostname.includes('tcloudbase.com')) {
+            qrUrl = currentBaseUrl;
+        } else {
+            // 否则使用配置的腾讯云地址
+            qrUrl = DEPLOY_CONFIG.gitee.baseUrl;
+        }
         fallbackUrl = DEPLOY_CONFIG.github.baseUrl;
     }
     
