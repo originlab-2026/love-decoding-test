@@ -27,3 +27,32 @@ pids
 # Build outputs
 dist/
 build/
+
+# Temporary files
+*.tmp
+*.temp
+*.log
+*.pid
+*.seed
+
+# Screenshots and images (temporary)
+*.png
+*.jpg
+!assets/**/*.png
+!assets/**/*.jpg
+!assets/**/*.webp
+
+# Test directories
+test/
+tests/
+__tests__/
+spec/
+specs/
+
+# Documentation (keep only essential)
+DEPLOY.md
+DEPLOYMENT_TROUBLESHOOTING.md
+
+# Empty directories
+scripts/
+server/
