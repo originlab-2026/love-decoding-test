@@ -195,6 +195,7 @@ async function navigateWithFallback(target, triggerElement = null) {
 function getQRCodeConfig() {
     const platform = detectDeployPlatform();
     const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
     
     // 默认使用腾讯云托管地址（Gitee配置）
     let qrUrl = DEPLOY_CONFIG.gitee.baseUrl;
@@ -205,18 +206,29 @@ function getQRCodeConfig() {
         qrUrl = DEPLOY_CONFIG.github.baseUrl;
         fallbackUrl = DEPLOY_CONFIG.gitee.baseUrl;
     } else if (platform === 'gitee' || platform === 'unknown') {
-        // 腾讯云托管环境或未知环境，使用当前部署URL或配置的腾讯云地址
-        // 优先使用当前页面的基础URL，确保二维码指向正确的地址
-        const currentBaseUrl = getCurrentDeployUrl();
-        // 如果当前URL是腾讯云托管地址，使用它
+        // 腾讯云托管环境或未知环境
+        // 如果在腾讯云托管域名下，直接使用当前页面的基础URL
         if (hostname.includes('tcloudbase.com')) {
-            qrUrl = currentBaseUrl;
+            // 从pathname中提取第一个路径段（如 /originlab/result.html -> originlab）
+            const pathParts = pathname.split('/').filter(p => p);
+            if (pathParts.length > 0) {
+                qrUrl = `https://${hostname}/${pathParts[0]}/`;
+            } else {
+                qrUrl = `https://${hostname}/`;
+            }
         } else {
-            // 否则使用配置的腾讯云地址
+            // 其他情况使用配置的腾讯云地址
             qrUrl = DEPLOY_CONFIG.gitee.baseUrl;
         }
         fallbackUrl = DEPLOY_CONFIG.github.baseUrl;
     }
+    
+    // 调试日志：在控制台输出当前配置
+    console.log('[QRCodeConfig] Platform:', platform);
+    console.log('[QRCodeConfig] Hostname:', hostname);
+    console.log('[QRCodeConfig] Pathname:', pathname);
+    console.log('[QRCodeConfig] QR URL:', qrUrl);
+    console.log('[QRCodeConfig] Fallback URL:', fallbackUrl);
     
     return {
         url: qrUrl,
