@@ -8,8 +8,8 @@
 const DEPLOY_CONFIG = {
     // 腾讯云托管配置（优先）
     gitee: {
-        baseUrl: 'https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/originlab/',
-        hostname: 'originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com',
+        baseUrl: 'https://originlab-7gf19u3w6fdbabd9-1422583622.tcloudbaseapp.com/originlab/',
+        hostname: 'originlab-7gf19u3w6fdbabd9-1422583622.tcloudbaseapp.com',
         faviconPath: 'favicon.ico'
     },
     // GitHub Pages 配置（Fallback）
@@ -22,7 +22,7 @@ const DEPLOY_CONFIG = {
     external: {
         // 未来伴侣测试
         futurePartner: {
-            gitee: 'https://originlab-7gf19u3w6fdbabd9-1251058142.ap-shanghai.app.tcloudbase.com/future-partner/',
+            gitee: 'https://originlab-7gf19u3w6fdbabd9-1422583622.tcloudbaseapp.com/future-partner/',
             github: 'https://originlab-2026.github.io/future-partner-test/'
         }
     }
