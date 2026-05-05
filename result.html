@@ -1928,7 +1928,7 @@
             quizData = StorageUtil.get(StorageKeys.QUIZ_DATA);
             if (!quizData) {
                 try {
-                    const response = await fetch('data/default-quiz.json?v=' + Date.now());
+                    const response = await fetch(resolveDeployPath('data/default-quiz.json') + '?v=' + Date.now());
                     if (response.ok) {
                         quizData = await response.json();
                         StorageUtil.set(StorageKeys.QUIZ_DATA, quizData);
@@ -1937,7 +1937,7 @@
                     }
                 } catch (error) {
                     alert('加载测试数据失败，请返回首页重试');
-                    window.location.href = 'index.html';
+                    window.location.href = getDeployPageUrl('index.html');
                     return;
                 }
             }
@@ -1947,7 +1947,7 @@
             
             if (Object.keys(answers).length === 0) {
                 alert('请先完成测试');
-                window.location.href = 'quiz.html';
+                window.location.href = getDeployPageUrl('quiz.html');
                 return;
             }
 

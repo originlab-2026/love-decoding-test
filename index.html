@@ -136,7 +136,7 @@
                     let loadSuccess = false;
                     // 使用相对路径加载
                     try {
-                        const response = await fetch('data/default-quiz.json?v=' + Date.now());
+                        const response = await fetch(resolveDeployPath('data/default-quiz.json') + '?v=' + Date.now());
                         if (response.ok) {
                             quizData = await response.json();
                             StorageUtil.set(StorageKeys.QUIZ_DATA, quizData);

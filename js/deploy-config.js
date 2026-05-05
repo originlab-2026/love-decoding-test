@@ -116,6 +116,50 @@ function getPrimaryDeployUrl() {
     return gh ? gh.baseUrl : getCurrentDeployUrl();
 }
 
+/** 站点根下的资源 URL（适配 GitHub Pages 子路径；避免 Clean URL 下相对路径解析错误） */
+function resolveDeployPath(relativePath) {
+    const rel = String(relativePath || '').replace(/^\//, '');
+    return getCurrentDeployUrl().replace(/\/?$/, '/') + rel;
+}
+
+/**
+ * 页面导航 URL。Cloudflare Pages 启用 Clean URLs 时，quiz.html 会 308 到 /quiz，弱网下多一次往返；
+ * 在 Cloudflare 上直接使用无扩展名路径可减少重定向。
+ */
+function getDeployPageUrl(filename) {
+    const name = String(filename || 'index.html').trim();
+    const base = getCurrentDeployUrl().replace(/\/?$/, '/');
+    if (detectDeployPlatform() === 'cloudflare') {
+        const lower = name.toLowerCase();
+        if (lower === 'index.html' || lower === '' || lower === 'index') {
+            return base;
+        }
+        const stem = name.replace(/\.html$/i, '');
+        return base + stem;
+    }
+    return base + name.replace(/^\//, '');
+}
+
+function patchStaticHtmlNavLinks() {
+    if (typeof document === 'undefined') return;
+    document.querySelectorAll('a[href="index.html"]').forEach((a) => {
+        a.setAttribute('href', getDeployPageUrl('index.html'));
+    });
+    document.querySelectorAll('a[href="quiz.html"]').forEach((a) => {
+        a.setAttribute('href', getDeployPageUrl('quiz.html'));
+    });
+}
+
+if (typeof document !== 'undefined') {
+    document.addEventListener('DOMContentLoaded', () => {
+        try {
+            patchStaticHtmlNavLinks();
+        } catch (e) {
+            /* no-op */
+        }
+    });
+}
+
 function compareAvailabilityByPriority(a, b) {
     const pa = DEPLOY_CONFIG.platforms.find(p => p.id === a.platformId);
     const pb = DEPLOY_CONFIG.platforms.find(p => p.id === b.platformId);
@@ -443,15 +487,22 @@ async function navigateWithFallback(target, triggerElement = null) {
 }
 
 function preloadPlatformChecks() {
-    setTimeout(() => {
+    const run = () => {
         console.log('[DeployConfig] Starting background platform checks...');
-        checkAllPlatforms().then(results => {
+        checkAllPlatforms().then((results) => {
             setCachedResults(results);
             console.log('[DeployConfig] Background check complete');
-        }).catch(e => {
+        }).catch((e) => {
             console.warn('[DeployConfig] Background check failed:', e);
         });
-    }, DEPLOY_CONFIG.detection.precheckDelay);
+    };
+    const delay = DEPLOY_CONFIG.detection.precheckDelay;
+    if (typeof window === 'undefined') {
+        return;
+    }
+    window.addEventListener('load', () => {
+        setTimeout(run, delay);
+    });
 }
 
 const QR_SHARE_URL_CACHE_KEY = 'deploy_qr_share_url_v1';
@@ -653,6 +704,9 @@ if (typeof module !== 'undefined' && module.exports) {
         detectDeployPlatform,
         getCurrentDeployUrl,
         getPrimaryDeployUrl,
+        resolveDeployPath,
+        getDeployPageUrl,
+        patchStaticHtmlNavLinks,
         checkPlatformAvailability,
         checkAllPlatforms,
         getFallbackUrl,

@@ -94,7 +94,7 @@
                 
                 if (!quizData) {
                     // 使用相对路径加载数据
-                    const jsonUrl = 'data/default-quiz.json';
+                    const jsonUrl = resolveDeployPath('data/default-quiz.json');
                     console.log('尝试加载:', jsonUrl);
                     
                     try {
@@ -439,7 +439,7 @@
 
             // 保存答案并跳转到结果页
             StorageUtil.set(StorageKeys.USER_ANSWERS, answers);
-            window.location.href = 'result.html';
+            window.location.href = getDeployPageUrl('result.html');
         });
 
         // 页面加载完成后执行
