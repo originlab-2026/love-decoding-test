@@ -13,7 +13,7 @@ const DEPLOY_CONFIG = {
             id: 'cloudflare',
             name: 'Cloudflare Pages',
             priority: 1,
-            baseUrl: 'https://<预留>.pages.dev/',
+            baseUrl: 'https://love-decoding-test.pages.dev/',
             hostnameIncludes: ['pages.dev'],
             checkPath: 'favicon.ico',
             enabled: true
@@ -31,7 +31,7 @@ const DEPLOY_CONFIG = {
 
     external: {
         loveDecoding: {
-            cloudflare: 'https://<预留>.pages.dev/',
+            cloudflare: 'https://love-decoding-test.pages.dev/',
             github: 'https://originlab-2026.github.io/love-decoding-test/'
         },
         futurePartner: {
