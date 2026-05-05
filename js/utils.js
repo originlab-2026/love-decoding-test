@@ -8,16 +8,46 @@ const StorageKeys = {
     USER_ANSWERS: 'user_answers',
     CURRENT_QUESTION: 'current_question',
     QUIZ_CONFIG: 'quiz_config',
-    UI_CONFIG: 'ui_config'
+    UI_CONFIG: 'ui_config',
+    PAYMENT_ORDER_NUMBER: 'payment_order_number',
+    PAYMENT_TIME: 'payment_time',
+    USED_ORDER_NUMBERS: 'used_order_numbers'
 };
 
+const STORAGE_NAMESPACE = 'love_decoding_test';
+const LEGACY_STORAGE_KEYS = new Set([
+    StorageKeys.QUIZ_DATA,
+    StorageKeys.USER_ANSWERS,
+    StorageKeys.CURRENT_QUESTION,
+    StorageKeys.QUIZ_CONFIG,
+    StorageKeys.UI_CONFIG,
+    StorageKeys.PAYMENT_ORDER_NUMBER,
+    StorageKeys.PAYMENT_TIME,
+    StorageKeys.USED_ORDER_NUMBERS
+]);
+
 /**
- * LocalStorage 工具类
+ * LocalStorage 工具类（按项目命名空间隔离，避免 github.io 同源下多项目串数据）
  */
 class StorageUtil {
+    static getScopedKey(key) {
+        return `${STORAGE_NAMESPACE}:${String(key)}`;
+    }
+
+    /** 兼容旧版直接写入的纯文本（如 ISO 时间串）与 JSON 序列化值 */
+    static parseStoredValue(raw) {
+        if (raw === null || raw === undefined) return null;
+        if (raw === '') return '';
+        try {
+            return JSON.parse(raw);
+        } catch (e) {
+            return raw;
+        }
+    }
+
     static set(key, value) {
         try {
-            localStorage.setItem(key, JSON.stringify(value));
+            localStorage.setItem(this.getScopedKey(key), JSON.stringify(value));
             return true;
         } catch (e) {
             console.error('Storage set error:', e);
@@ -27,8 +57,25 @@ class StorageUtil {
 
     static get(key, defaultValue = null) {
         try {
-            const item = localStorage.getItem(key);
-            return item ? JSON.parse(item) : defaultValue;
+            const scopedKey = this.getScopedKey(key);
+            const scopedItem = localStorage.getItem(scopedKey);
+            if (scopedItem !== null) {
+                return this.parseStoredValue(scopedItem);
+            }
+
+            const legacyItem = localStorage.getItem(key);
+            if (legacyItem !== null) {
+                const parsed = this.parseStoredValue(legacyItem);
+                try {
+                    localStorage.setItem(scopedKey, JSON.stringify(parsed));
+                } catch (e) {
+                    /* no-op */
+                }
+                localStorage.removeItem(key);
+                return parsed;
+            }
+
+            return defaultValue;
         } catch (e) {
             console.error('Storage get error:', e);
             return defaultValue;
@@ -36,11 +83,20 @@ class StorageUtil {
     }
 
     static remove(key) {
+        localStorage.removeItem(this.getScopedKey(key));
         localStorage.removeItem(key);
     }
 
     static clear() {
-        localStorage.clear();
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i += 1) {
+            const key = localStorage.key(i);
+            if (!key) continue;
+            if (key.startsWith(`${STORAGE_NAMESPACE}:`) || LEGACY_STORAGE_KEYS.has(key)) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach((k) => localStorage.removeItem(k));
     }
 
     static clearQuizProgress() {

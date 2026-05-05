@@ -1875,8 +1875,9 @@
 
         // 检查是否已付费
         function checkPaymentStatus() {
-            const orderNumber = localStorage.getItem('payment_order_number');
-            if (orderNumber && /^\d{12,}$/.test(orderNumber)) {
+            const orderNumber = StorageUtil.get(StorageKeys.PAYMENT_ORDER_NUMBER, '');
+            const sn = orderNumber != null ? String(orderNumber) : '';
+            if (sn && /^\d{12,}$/.test(sn)) {
                 return true;
             }
             return false;
@@ -1900,17 +1901,18 @@
             }
             errorEl.style.display = 'none';
             // 检查单号是否已被使用过
-            const usedOrders = JSON.parse(localStorage.getItem('used_order_numbers') || '[]');
+            const usedOrdersRaw = StorageUtil.get(StorageKeys.USED_ORDER_NUMBERS, []);
+            const usedOrders = Array.isArray(usedOrdersRaw) ? usedOrdersRaw : [];
             if (usedOrders.includes(input)) {
                 errorEl.textContent = '单号未通过校验，请打开微信或支付宝账单，核对后粘贴完整单号再试。';
                 errorEl.style.display = 'block';
                 return;
             }
             // 记录单号和时间
-            localStorage.setItem('payment_order_number', input);
-            localStorage.setItem('payment_time', new Date().toISOString());
+            StorageUtil.set(StorageKeys.PAYMENT_ORDER_NUMBER, input);
+            StorageUtil.set(StorageKeys.PAYMENT_TIME, new Date().toISOString());
             usedOrders.push(input);
-            localStorage.setItem('used_order_numbers', JSON.stringify(usedOrders));
+            StorageUtil.set(StorageKeys.USED_ORDER_NUMBERS, usedOrders);
             // 解锁结果
             unlockResults();
         }
@@ -2018,9 +2020,9 @@
                 // URL参数重置付费状态（方便调试）
                 const urlParams = new URLSearchParams(window.location.search);
                 if (urlParams.get('reset') === '1') {
-                    localStorage.removeItem('payment_order_number');
-                    localStorage.removeItem('payment_time');
-                    localStorage.removeItem('used_order_numbers');
+                    StorageUtil.remove(StorageKeys.PAYMENT_ORDER_NUMBER);
+                    StorageUtil.remove(StorageKeys.PAYMENT_TIME);
+                    StorageUtil.remove(StorageKeys.USED_ORDER_NUMBERS);
                     // 清理URL中的reset参数
                     window.history.replaceState({}, '', window.location.pathname);
                 }
