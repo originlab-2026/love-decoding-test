@@ -1,49 +1,75 @@
 /**
- * 部署配置模块
- * 统一管理 GitHub Pages 和 Gitee Pages 双平台部署配置
- * 实现 Gitee 优先 + GitHub Fallback 的访问策略
+ * 多平台部署配置与智能 Fallback
+ * Cloudflare Pages 优先，GitHub Pages 备用（按 priority 选择，同优先级再比响应时间）
+ *
+ * 当前项目: 爱的解码 (love-decoding)
  */
 
-// 项目部署配置 - 双平台URL
 const DEPLOY_CONFIG = {
-    // Gitee Pages 配置（优先）
-    gitee: {
-        baseUrl: 'https://originlab.gitee.io/love-decoding-test/',
-        hostname: 'originlab.gitee.io',
-        faviconPath: 'favicon.ico'
-    },
-    // GitHub Pages 配置（Fallback）
-    github: {
-        baseUrl: 'https://originlab-2026.github.io/love-decoding-test/',
-        hostname: 'originlab-2026.github.io',
-        faviconPath: 'favicon.ico'
-    },
-    // 其他项目链接配置
-    external: {
-        // 未来伴侣测试
-        futurePartner: {
-            gitee: 'https://originlab.gitee.io/future-partner-test/',
-            github: 'https://originlab-2026.github.io/future-partner-test/'
+    projectId: 'love-decoding',
+
+    platforms: [
+        {
+            id: 'cloudflare',
+            name: 'Cloudflare Pages',
+            priority: 1,
+            baseUrl: 'https://<预留>.pages.dev/',
+            hostnameIncludes: ['pages.dev'],
+            checkPath: 'favicon.ico',
+            enabled: true
+        },
+        {
+            id: 'github',
+            name: 'GitHub Pages',
+            priority: 2,
+            baseUrl: 'https://originlab-2026.github.io/love-decoding-test/',
+            hostnameIncludes: ['github.io'],
+            checkPath: 'favicon.ico',
+            enabled: true
         }
+    ],
+
+    external: {
+        loveDecoding: {
+            cloudflare: 'https://<预留>.pages.dev/',
+            github: 'https://originlab-2026.github.io/love-decoding-test/'
+        },
+        futurePartner: {
+            cloudflare: 'https://<预留>.pages.dev/',
+            github: 'https://originlab-2026.github.io/future-partner-test/'
+        },
+        catalog: {
+            cloudflare: 'https://<预留>.pages.dev/',
+            github: 'https://originlab-2026.github.io/test-catalog/'
+        }
+    },
+
+    detection: {
+        timeout: 3000,
+        cacheTTL: 300000,
+        precheckDelay: 2000,
+        useHeadRequest: true,
+        useImageFallback: true
     }
 };
 
+const PLATFORM_CACHE_KEY = 'deploy_platform_cache_v3';
+
+function isPlaceholderDeployUrl(url) {
+    return !url || url.includes('<预留>');
+}
+
 /**
- * 检测当前部署平台
- * @returns {string} 'gitee' | 'github' | 'vercel' | 'localhost' | 'unknown'
+ * @returns {string} 'cloudflare' | 'github' | 'localhost' | 'unknown'
  */
 function detectDeployPlatform() {
     const hostname = window.location.hostname;
-    const pathname = window.location.pathname;
-    
-    if (hostname.includes('gitee.io')) {
-        return 'gitee';
-    }
-    if (hostname.includes('github.io')) {
-        return 'github';
-    }
-    if (hostname.includes('vercel.app')) {
-        return 'vercel';
+    for (const platform of DEPLOY_CONFIG.platforms) {
+        for (const include of platform.hostnameIncludes) {
+            if (hostname.includes(include)) {
+                return platform.id;
+            }
+        }
     }
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
         return 'localhost';
@@ -51,208 +77,353 @@ function detectDeployPlatform() {
     return 'unknown';
 }
 
-/**
- * 获取当前平台的部署URL
- * @returns {string} 当前平台的完整URL
- */
 function getCurrentDeployUrl() {
     const platform = detectDeployPlatform();
     const hostname = window.location.hostname;
     const pathname = window.location.pathname;
-    
-    switch (platform) {
-        case 'gitee':
-            // Gitee Pages: originlab.gitee.io/repo-name
-            const giteeParts = pathname.split('/').filter(p => p);
-            if (giteeParts.length > 0) {
-                return `https://originlab.gitee.io/${giteeParts[0]}/`;
+    const platformConfig = DEPLOY_CONFIG.platforms.find(p => p.id === platform);
+
+    if (platformConfig) {
+        if (platform === 'github') {
+            const parts = pathname.split('/').filter(p => p);
+            if (parts.length > 0) {
+                return `https://${hostname}/${parts[0]}/`;
             }
-            return 'https://originlab.gitee.io/';
-            
-        case 'github':
-            // GitHub Pages: originlab-2026.github.io/repo-name
-            const githubParts = pathname.split('/').filter(p => p);
-            if (githubParts.length > 0) {
-                return `https://originlab-2026.github.io/${githubParts[0]}/`;
-            }
-            return 'https://originlab-2026.github.io/';
-            
-        case 'vercel':
-            return `https://${hostname}/`;
-            
-        case 'localhost':
-        default:
+        }
+        if (platform === 'cloudflare') {
             return window.location.origin + '/';
+        }
+        return platformConfig.baseUrl;
     }
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        return window.location.origin + '/';
+    }
+
+    return 'https://' + hostname + '/';
 }
 
-/**
- * 获取Gitee优先的URL（用于二维码生成等）
- * 如果当前在Gitee环境，使用当前URL；否则使用配置的Gitee URL
- * @returns {string} Gitee优先的URL
- */
-function getGiteePriorityUrl() {
+function getPrimaryDeployUrl() {
     const platform = detectDeployPlatform();
-    
-    // 如果当前就在Gitee环境，直接使用当前URL
-    if (platform === 'gitee') {
+    if (platform === 'cloudflare') {
         return getCurrentDeployUrl();
     }
-    
-    // 否则返回配置的Gitee URL
-    return DEPLOY_CONFIG.gitee.baseUrl;
-}
-
-/**
- * 检测Gitee是否可访问（用于Fallback机制）
- * @param {number} timeout - 超时时间（毫秒）
- * @returns {Promise<boolean>} Gitee是否可访问
- */
-async function checkGiteeAvailable(timeout = 3000) {
-    return new Promise((resolve) => {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            controller.abort();
-            resolve(false);
-        }, timeout);
-        
-        // 尝试加载Gitee的favicon
-        const img = new Image();
-        let resolved = false;
-        
-        img.onload = () => {
-            if (!resolved) {
-                resolved = true;
-                clearTimeout(timeoutId);
-                resolve(true);
-            }
-        };
-        
-        img.onerror = () => {
-            if (!resolved) {
-                resolved = true;
-                clearTimeout(timeoutId);
-                resolve(false);
-            }
-        };
-        
-        // 添加随机参数避免缓存
-        img.src = DEPLOY_CONFIG.gitee.baseUrl + DEPLOY_CONFIG.gitee.faviconPath + '?' + Date.now();
-    });
-}
-
-/**
- * 获取带有Fallback的URL
- * 优先返回Gitee URL，如果Gitee不可用则返回GitHub URL
- * @returns {Promise<string>} 可用的URL
- */
-async function getFallbackUrl() {
-    const giteeAvailable = await checkGiteeAvailable();
-    return giteeAvailable ? DEPLOY_CONFIG.gitee.baseUrl : DEPLOY_CONFIG.github.baseUrl;
-}
-
-/**
- * 跳转到外部链接（带Fallback机制）
- * 优先跳转到Gitee，如果检测失败则自动降级到GitHub
- * @param {string} target - 目标项目标识，如 'futurePartner'
- * @param {HTMLElement} triggerElement - 触发跳转的元素（用于显示加载状态）
- */
-async function navigateWithFallback(target, triggerElement = null) {
-    const urls = DEPLOY_CONFIG.external[target];
-    if (!urls) {
-        console.error('未知的外部链接目标:', target);
-        return;
+    const cf = DEPLOY_CONFIG.platforms.find(p => p.id === 'cloudflare');
+    if (cf && cf.enabled && !isPlaceholderDeployUrl(cf.baseUrl)) {
+        return cf.baseUrl;
     }
-    
-    // 显示加载状态
+    const gh = DEPLOY_CONFIG.platforms.find(p => p.id === 'github');
+    return gh ? gh.baseUrl : getCurrentDeployUrl();
+}
+
+function compareAvailabilityByPriority(a, b) {
+    const pa = DEPLOY_CONFIG.platforms.find(p => p.id === a.platformId);
+    const pb = DEPLOY_CONFIG.platforms.find(p => p.id === b.platformId);
+    const priA = pa ? pa.priority : 999;
+    const priB = pb ? pb.priority : 999;
+    if (priA !== priB) return priA - priB;
+    return a.responseTime - b.responseTime;
+}
+
+function firstEnabledPlatformBaseUrl() {
+    const ordered = [...DEPLOY_CONFIG.platforms]
+        .filter(p => p.enabled && !isPlaceholderDeployUrl(p.baseUrl))
+        .sort((a, b) => a.priority - b.priority);
+    return ordered[0] ? ordered[0].baseUrl : '';
+}
+
+async function checkPlatformAvailability(platformId, timeout = DEPLOY_CONFIG.detection.timeout) {
+    const platform = DEPLOY_CONFIG.platforms.find(p => p.id === platformId);
+    if (!platform || !platform.enabled || isPlaceholderDeployUrl(platform.baseUrl)) {
+        return { available: false, responseTime: Infinity };
+    }
+
+    const checkUrl = platform.baseUrl + platform.checkPath + '?' + Date.now();
+    const startTime = performance.now();
+
+    if (DEPLOY_CONFIG.detection.useHeadRequest) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            await fetch(checkUrl, {
+                method: 'HEAD',
+                mode: 'no-cors',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            const responseTime = performance.now() - startTime;
+            console.log(`[DeployConfig] ${platform.name} available (${responseTime.toFixed(0)}ms)`);
+            return { available: true, responseTime };
+        } catch (e) {
+            console.log(`[DeployConfig] ${platform.name} HEAD check failed`);
+        }
+    }
+
+    if (DEPLOY_CONFIG.detection.useImageFallback) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            let resolved = false;
+
+            const timer = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    resolve({ available: false, responseTime: Infinity });
+                }
+            }, timeout);
+
+            img.onload = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    resolve({ available: true, responseTime: performance.now() - startTime });
+                }
+            };
+
+            img.onerror = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    resolve({ available: false, responseTime: Infinity });
+                }
+            };
+
+            img.src = checkUrl;
+        });
+    }
+
+    return { available: false, responseTime: Infinity };
+}
+
+async function checkAllPlatforms() {
+    const enabledPlatforms = DEPLOY_CONFIG.platforms.filter(p => p.enabled);
+    console.log(`[DeployConfig] Checking ${enabledPlatforms.length} platforms...`);
+
+    const promises = enabledPlatforms.map(p =>
+        checkPlatformAvailability(p.id).then(result => ({
+            platformId: p.id,
+            ...result,
+            url: p.baseUrl
+        }))
+    );
+
+    const results = await Promise.all(promises);
+
+    const available = results
+        .filter(r => r.available)
+        .sort(compareAvailabilityByPriority);
+
+    console.log('[DeployConfig] Available platforms:', available.map(r => `${r.platformId}(${r.responseTime.toFixed(0)}ms)`).join(', ') || 'none');
+    return available;
+}
+
+function getCachedResults() {
+    try {
+        const cached = sessionStorage.getItem(PLATFORM_CACHE_KEY);
+        if (cached) {
+            const data = JSON.parse(cached);
+            if (Date.now() - data.timestamp < DEPLOY_CONFIG.detection.cacheTTL) {
+                console.log('[DeployConfig] Using cached results');
+                return data.results;
+            }
+        }
+    } catch (e) {
+        console.warn('[DeployConfig] Cache read error:', e);
+    }
+    return null;
+}
+
+function setCachedResults(results) {
+    try {
+        sessionStorage.setItem(PLATFORM_CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            results
+        }));
+    } catch (e) {
+        console.warn('[DeployConfig] Cache write error:', e);
+    }
+}
+
+async function getFallbackUrl() {
+    const results = await checkAllPlatforms();
+    if (results.length > 0) {
+        return results[0].url;
+    }
+    return firstEnabledPlatformBaseUrl();
+}
+
+async function getBestAvailableUrl(target = null) {
+    let results = getCachedResults();
+
+    if (!results) {
+        console.log('[DeployConfig] Cache miss, checking platforms...');
+        results = await checkAllPlatforms();
+        setCachedResults(results);
+    }
+
+    if (results.length === 0) {
+        console.error('[DeployConfig] No platforms available!');
+        if (target) {
+            const externalUrls = DEPLOY_CONFIG.external[target];
+            if (externalUrls) {
+                const ordered = [...DEPLOY_CONFIG.platforms].sort((a, b) => a.priority - b.priority);
+                for (const platform of ordered) {
+                    const u = externalUrls[platform.id];
+                    if (u && !isPlaceholderDeployUrl(u)) {
+                        return u;
+                    }
+                }
+            }
+        }
+        return firstEnabledPlatformBaseUrl() || null;
+    }
+
+    if (target) {
+        const externalUrls = DEPLOY_CONFIG.external[target];
+        if (!externalUrls) {
+            console.error('[DeployConfig] Unknown target:', target);
+            return null;
+        }
+
+        for (const result of results) {
+            const u = externalUrls[result.platformId];
+            if (u && !isPlaceholderDeployUrl(u)) {
+                console.log(`[DeployConfig] Best URL for ${target}:`, u);
+                return u;
+            }
+        }
+
+        const ordered = [...DEPLOY_CONFIG.platforms].sort((a, b) => a.priority - b.priority);
+        for (const platform of ordered) {
+            const u = externalUrls[platform.id];
+            if (u && !isPlaceholderDeployUrl(u)) {
+                console.warn(`[DeployConfig] Using fallback URL for ${target}:`, u);
+                return u;
+            }
+        }
+    } else {
+        const winner = results[0];
+        const p = DEPLOY_CONFIG.platforms.find(x => x.id === winner.platformId);
+        if (p && !isPlaceholderDeployUrl(p.baseUrl)) {
+            return winner.url;
+        }
+        const fb = firstEnabledPlatformBaseUrl();
+        return fb || null;
+    }
+
+    return null;
+}
+
+async function navigateWithFallback(target, triggerElement = null) {
     if (triggerElement) {
         triggerElement.style.opacity = '0.7';
         triggerElement.style.pointerEvents = 'none';
     }
-    
-    // 检测Gitee是否可用
-    const giteeAvailable = await checkGiteeAvailable();
-    
-    // 恢复元素状态
-    if (triggerElement) {
-        triggerElement.style.opacity = '1';
-        triggerElement.style.pointerEvents = 'auto';
+
+    try {
+        const url = await getBestAvailableUrl(target);
+        if (url) {
+            window.location.href = url;
+        } else {
+            console.error('[DeployConfig] No URL available for target:', target);
+            alert('暂时无法连接到目标页面，请稍后再试');
+            if (triggerElement) {
+                triggerElement.style.opacity = '1';
+                triggerElement.style.pointerEvents = 'auto';
+            }
+        }
+    } catch (e) {
+        console.error('[DeployConfig] Navigation error:', e);
+        if (triggerElement) {
+            triggerElement.style.opacity = '1';
+            triggerElement.style.pointerEvents = 'auto';
+        }
     }
-    
-    // 跳转到可用平台
-    const targetUrl = giteeAvailable ? urls.gitee : urls.github;
-    window.location.href = targetUrl;
 }
 
-/**
- * 生成二维码配置
- * 根据当前平台动态生成二维码URL配置
- * @returns {Object} 二维码配置对象
- */
+function preloadPlatformChecks() {
+    setTimeout(() => {
+        console.log('[DeployConfig] Starting background platform checks...');
+        checkAllPlatforms().then(results => {
+            setCachedResults(results);
+            console.log('[DeployConfig] Background check complete');
+        }).catch(e => {
+            console.warn('[DeployConfig] Background check failed:', e);
+        });
+    }, DEPLOY_CONFIG.detection.precheckDelay);
+}
+
+function clearPlatformCache() {
+    sessionStorage.removeItem(PLATFORM_CACHE_KEY);
+    console.log('[DeployConfig] Cache cleared');
+}
+
 function getQRCodeConfig() {
     const platform = detectDeployPlatform();
-    
-    // 默认使用Gitee优先策略
-    let qrUrl = DEPLOY_CONFIG.gitee.baseUrl;
-    let fallbackUrl = DEPLOY_CONFIG.github.baseUrl;
-    
-    // 如果当前在GitHub环境，检查是否需要使用GitHub URL
-    if (platform === 'github') {
-        // 异步检测Gitee可用性，但同步返回默认配置
-        // 实际使用时可以通过 checkGiteeAvailable 动态调整
-        qrUrl = DEPLOY_CONFIG.github.baseUrl;
-        fallbackUrl = DEPLOY_CONFIG.gitee.baseUrl;
-    } else if (platform === 'gitee') {
-        qrUrl = getCurrentDeployUrl();
-        fallbackUrl = DEPLOY_CONFIG.github.baseUrl;
+    const hostname = window.location.hostname;
+    const pathname = window.location.pathname;
+
+    const ghPlat = DEPLOY_CONFIG.platforms.find(p => p.id === 'github');
+    const cfPlat = DEPLOY_CONFIG.platforms.find(p => p.id === 'cloudflare');
+    const ghUrl = ghPlat ? ghPlat.baseUrl : '';
+    const cfConfigured = cfPlat && !isPlaceholderDeployUrl(cfPlat.baseUrl) ? cfPlat.baseUrl : '';
+
+    let qrUrl = cfConfigured || ghUrl;
+    let fallbackUrl = ghUrl || cfConfigured;
+
+    if (platform === 'cloudflare') {
+        qrUrl = window.location.origin + '/';
+        fallbackUrl = ghUrl || qrUrl;
+    } else if (platform === 'github') {
+        const parts = pathname.split('/').filter(p => p);
+        if (parts.length > 0) {
+            qrUrl = `https://${hostname}/${parts[0]}/`;
+        } else {
+            qrUrl = ghUrl;
+        }
+        fallbackUrl = cfConfigured || qrUrl;
     }
-    
+
+    if (isPlaceholderDeployUrl(fallbackUrl)) {
+        fallbackUrl = ghUrl;
+    }
+    if (isPlaceholderDeployUrl(qrUrl)) {
+        qrUrl = ghUrl;
+    }
+
     return {
         url: qrUrl,
         fallbackUrl: fallbackUrl,
-        pdfSize: 50,      // PDF页眉二维码尺寸(px)
-        posterSize: 80,   // 海报二维码尺寸(px)
+        pdfSize: 50,
+        posterSize: 80,
         platform: platform
     };
 }
 
-/**
- * 更新二维码显示（带双平台提示）
- * 在二维码下方显示当前平台信息
- * @param {string} containerId - 二维码容器ID
- * @param {string} url - 二维码URL
- * @param {number} size - 二维码尺寸
- */
 async function generatePlatformAwareQRCode(containerId, url, size = 80) {
     const container = document.getElementById(containerId);
     if (!container) return null;
-    
-    // 清空容器
+
     container.innerHTML = '';
-    
-    // 获取平台配置
+
     const config = getQRCodeConfig();
     const useUrl = url || config.url;
-    
-    // 检查 QRCode 库
+
     if (typeof QRCode === 'undefined') {
-        console.error('QRCode 库未加载');
+        console.error('QRCode library not loaded');
         return null;
     }
-    
+
     try {
-        // 创建二维码容器
         const qrWrapper = document.createElement('div');
         qrWrapper.style.display = 'inline-block';
         qrWrapper.style.background = 'white';
         qrWrapper.style.padding = '8px';
         qrWrapper.style.borderRadius = '8px';
         qrWrapper.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
-        
-        // 生成二维码
+
         const qrDiv = document.createElement('div');
         qrWrapper.appendChild(qrDiv);
-        
+
         new QRCode(qrDiv, {
             text: useUrl,
             width: size,
@@ -261,38 +432,28 @@ async function generatePlatformAwareQRCode(containerId, url, size = 80) {
             colorLight: '#ffffff',
             correctLevel: QRCode.CorrectLevel.M
         });
-        
+
         container.appendChild(qrWrapper);
-        
         return useUrl;
     } catch (err) {
-        console.error('二维码生成失败:', err);
+        console.error('QRCode generation failed:', err);
         return null;
     }
 }
 
-/**
- * 生成海报二维码（异步，返回DataURL）
- * @param {string} url - 二维码URL
- * @param {number} size - 二维码尺寸
- * @returns {Promise<string|null>} 二维码DataURL
- */
 async function generateQRCodeDataURL(url, size = 80) {
     return new Promise((resolve) => {
         try {
             if (typeof QRCode === 'undefined') {
-                console.error('QRCode 库未加载');
                 resolve(null);
                 return;
             }
-            
-            // 创建临时容器
+
             const tempDiv = document.createElement('div');
             tempDiv.style.position = 'fixed';
             tempDiv.style.left = '-9999px';
             document.body.appendChild(tempDiv);
-            
-            // 生成二维码
+
             new QRCode(tempDiv, {
                 text: url,
                 width: size,
@@ -301,8 +462,7 @@ async function generateQRCodeDataURL(url, size = 80) {
                 colorLight: '#ffffff',
                 correctLevel: QRCode.CorrectLevel.M
             });
-            
-            // 等待生成完成
+
             setTimeout(() => {
                 const img = tempDiv.querySelector('img');
                 if (img && img.src && img.src.startsWith('data:')) {
@@ -310,7 +470,7 @@ async function generateQRCodeDataURL(url, size = 80) {
                     resolve(img.src);
                     return;
                 }
-                
+
                 const canvas = tempDiv.querySelector('canvas');
                 if (canvas) {
                     const dataUrl = canvas.toDataURL('image/png');
@@ -318,27 +478,30 @@ async function generateQRCodeDataURL(url, size = 80) {
                     resolve(dataUrl);
                     return;
                 }
-                
+
                 document.body.removeChild(tempDiv);
                 resolve(null);
             }, 100);
         } catch (err) {
-            console.error('二维码生成失败:', err);
+            console.error('QRCode generation failed:', err);
             resolve(null);
         }
     });
 }
 
-// 导出模块
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         DEPLOY_CONFIG,
         detectDeployPlatform,
         getCurrentDeployUrl,
-        getGiteePriorityUrl,
-        checkGiteeAvailable,
+        getPrimaryDeployUrl,
+        checkPlatformAvailability,
+        checkAllPlatforms,
         getFallbackUrl,
+        getBestAvailableUrl,
         navigateWithFallback,
+        preloadPlatformChecks,
+        clearPlatformCache,
         getQRCodeConfig,
         generatePlatformAwareQRCode,
         generateQRCodeDataURL

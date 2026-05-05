@@ -18,7 +18,7 @@
             <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
                 <li><a href="index.html" class="active">首页</a></li>
-                <li><a href="catalog.html">测试合集</a></li>
+                <li><a href="javascript:void(0)" onclick="navigateWithFallback('catalog', this)">测试合集</a></li>
             </ul>
         </div>
     </nav>
@@ -560,11 +560,14 @@
             applyUIConfig();
             loadQuizData();
             
+            // 后台预检测所有平台可用性
+            preloadPlatformChecks();
+            
             // 检测当前部署平台并记录日志
             const platform = detectDeployPlatform();
-            console.log('当前部署平台:', platform);
-            console.log('当前部署URL:', getCurrentDeployUrl());
-            console.log('Gitee优先URL:', getGiteePriorityUrl());
+            console.log('[Deploy] 当前平台:', platform);
+            console.log('[Deploy] 当前URL:', getCurrentDeployUrl());
+            console.log('[Deploy] Cloudflare 优先主站 URL:', getPrimaryDeployUrl());
         });
     </script>
 </body>

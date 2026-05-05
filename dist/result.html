@@ -213,32 +213,38 @@
     <!-- 付费墙遮罩层 -->
     <div id="paywall-overlay" class="paywall-overlay" style="display:none;">
         <div class="paywall-card">
-            <div class="paywall-icon">&#128274;</div>
-            <h2 class="paywall-title">测试已完成</h2>
-            <p class="paywall-desc">扫码支付后，输入商家单号即可解锁你的完整报告</p>
-            <div class="paywall-price">¥2.99</div>
+            <div class="paywall-card-head">
+                <p class="paywall-badge">报告解锁 · 单次付费</p>
+                <h2 class="paywall-title">解锁完整分析报告</h2>
+                <p class="paywall-product">爱的解码测试</p>
+                <p class="paywall-desc">完整报告包含维度解读与个性化说明。下方为<strong>微信 / 支付宝官方收款海报</strong>（含金额与商户说明），请整图查看后扫码支付。支付完成后，将账单里的<strong>单号</strong>填入下方即可完成校验并解锁内容。</p>
+            </div>
+            <div class="paywall-price-block">
+                <span class="paywall-price-label">应付金额（一次性）</span>
+                <div class="paywall-price">¥2.99</div>
+            </div>
 
             <!-- 收款码切换 -->
             <div class="qrcode-tabs">
-                <button class="qrcode-tab active" data-tab="wechat">
-                    <img src="assets/payment/wxpay.png" alt="微信支付" class="qrcode-tab-icon">
+                <button type="button" class="qrcode-tab active" data-tab="wechat">
+                    <span class="qrcode-tab-mark" aria-hidden="true"></span>
                     微信支付
                 </button>
-                <button class="qrcode-tab" data-tab="alipay">
-                    <img src="assets/payment/Alipay.png" alt="支付宝" class="qrcode-tab-icon">
+                <button type="button" class="qrcode-tab" data-tab="alipay">
+                    <span class="qrcode-tab-mark" aria-hidden="true"></span>
                     支付宝
                 </button>
             </div>
             <div class="qrcode-container">
-                <img id="qrcode-wechat" class="qrcode-img" src="assets/payment/wechat-qrcode.jpg?v=2" alt="微信收款码">
-                <img id="qrcode-alipay" class="qrcode-img" src="assets/payment/alipay-qrcode.jpg?v=2" alt="支付宝收款码" style="display:none">
+                <img id="qrcode-wechat" class="qrcode-img" src="assets/payment/wechat-qrcode.jpg?v=3" alt="微信支付收款海报">
+                <img id="qrcode-alipay" class="qrcode-img" src="assets/payment/alipay-qrcode.jpg?v=3" alt="支付宝收款海报" style="display:none">
             </div>
 
             <!-- 长按提示 - 微信 -->
-            <p class="qrcode-hint" id="hint-wechat">长按保存图片，打开微信扫一扫支付</p>
+            <p class="qrcode-hint" id="hint-wechat">收款账户为微信认证的经营收款，款项经官方渠道清算。可长按识别图中二维码支付；也可保存图片到相册，打开微信「扫一扫」从相册选择图片支付。</p>
 
             <!-- 长按提示 - 支付宝 -->
-            <p class="qrcode-hint" id="hint-alipay" style="display:none">长按识别二维码，跳转支付宝完成支付</p>
+            <p class="qrcode-hint" id="hint-alipay" style="display:none">收款账户为支付宝认证的经营收款，款项经官方渠道清算。可长按识别图中二维码支付；也可保存图片后在支付宝内扫码支付。</p>
 
             <!-- 操作指引 - 微信 -->
             <div class="payment-guide" id="guide-wechat">
@@ -262,10 +268,11 @@
 
             <!-- 单号输入 -->
             <div class="order-input-group">
-                <input type="text" id="order-number-input" placeholder="请输入交易单号" />
-                <button id="unlock-btn" class="btn btn-primary" style="border-radius:10px;padding:12px 24px;">确认解锁</button>
+                <input type="text" id="order-number-input" placeholder="请输入交易单号" autocomplete="one-time-code" />
+                <button type="button" id="unlock-btn" class="btn btn-primary" style="border-radius:10px;padding:12px 24px;">校验并解锁报告</button>
             </div>
-            <p id="paywall-error" class="paywall-error" style="display:none">无效！请输入正确的商家单号</p>
+            <p id="paywall-error" class="paywall-error" style="display:none">单号未通过校验，请打开微信或支付宝账单，核对后粘贴完整单号再试。</p>
+            <p class="paywall-trust">我们不会向您索要银行卡密码或短信验证码，也不会要求跳转不明第三方页面。若对收款方有疑问，请在微信或支付宝的账单详情中核对商户名称与金额。</p>
         </div>
     </div>
 
@@ -1899,7 +1906,7 @@
             const errorEl = document.getElementById('paywall-error');
             // 校验：纯数字，至少12位
             if (!/^\d{12,}$/.test(input)) {
-                errorEl.textContent = '无效！请输入正确的商家单号';
+                errorEl.textContent = '单号未通过校验，请打开微信或支付宝账单，核对后粘贴完整单号再试。';
                 errorEl.style.display = 'block';
                 return;
             }
@@ -1907,7 +1914,7 @@
             // 检查单号是否已被使用过
             const usedOrders = JSON.parse(localStorage.getItem('used_order_numbers') || '[]');
             if (usedOrders.includes(input)) {
-                errorEl.textContent = '无效！请输入正确的商家单号';
+                errorEl.textContent = '单号未通过校验，请打开微信或支付宝账单，核对后粘贴完整单号再试。';
                 errorEl.style.display = 'block';
                 return;
             }
