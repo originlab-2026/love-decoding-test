@@ -204,8 +204,7 @@
         <div class="container">
             <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
-                <li><a href="index.html">首页</a></li>
-                <li><a href="javascript:void(0)" onclick="navigateWithFallback('catalog', this)">测试合集</a></li>
+                <li><a href="javascript:void(0)" class="active" onclick="navigateWithFallback('catalog', this)">测试合集</a></li>
             </ul>
         </div>
     </nav>
@@ -1263,9 +1262,9 @@
                                 text-align: center;
                                 z-index: 100;">
                         <picture>
-                            <source srcset="assets/icon/${dim.name}.webp" type="image/webp">
-                            <source srcset="assets/icon/${dim.name}.png" type="image/png">
-                            <img src="assets/icon/${dim.name}.png?v=${timestamp}" 
+                            <source srcset="assets/dimension/${dim.name}.webp" type="image/webp">
+                            <source srcset="assets/dimension/${dim.name}.png" type="image/png">
+                            <img src="assets/dimension/${dim.name}.png?v=${timestamp}" 
                                  alt="${dim.name}"
                                  loading="lazy"
                                  decoding="async"
@@ -1301,7 +1300,7 @@
                     <div class="dimension-card" style="${isTop ? 'border-left-width: 6px; background: linear-gradient(to right, #FFF0F1, #fff);' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <img src="assets/icon/${dim.name}.png?v=${Date.now()}" alt="${dim.name}" style="width: 48px; height: 48px; object-fit: contain;">
+                                <img src="assets/dimension/${dim.name}.png?v=${Date.now()}" alt="${dim.name}" style="width: 48px; height: 48px; object-fit: contain;">
                                 <h3 style="margin: 0; ${isTop ? 'font-size: 1.3rem; color: #FF6B6B;' : ''}">${dim.name}</h3>
                             </div>
                             <span class="dimension-score">${Math.round(dim.percentage * 100)}%</span>
@@ -1373,22 +1372,10 @@
             document.documentElement.classList.add('safari-compat');
         }
 
-        // 二维码配置 - 使用部署配置模块
-        // 根据当前平台智能选择 URL：Cloudflare / GitHub（见 deploy-config getQRCodeConfig）
-        const baseQRConfig = getQRCodeConfig();
+        // 二维码尺寸（链接由 deploy-config.js 的 getQrCodeShareUrl：Cloudflare 优先，失败则 GitHub）
         const QR_CONFIG = {
-            get url() {
-                // 使用部署模块的配置：当前平台优先，另一平台作为fallback
-                return baseQRConfig.url;
-            },
-            get fallbackUrl() {
-                return baseQRConfig.fallbackUrl;
-            },
-            pdfSize: 50,      // PDF页眉二维码尺寸(px)
-            posterSize: 80,   // 海报二维码尺寸(px)
-            get platform() {
-                return baseQRConfig.platform;
-            }
+            pdfSize: 50,
+            posterSize: 80
         };
 
         // 生成 PDF 报告
@@ -1424,8 +1411,8 @@
                     radarChart.update();
                 }
                 
-                // 生成二维码（异步）
-                const qrCodeDataUrl = await generateQRCodeDataURL(QR_CONFIG.url, QR_CONFIG.pdfSize);
+                const qrShareUrl = await getQrCodeShareUrl();
+                const qrCodeDataUrl = await generateQRCodeDataURL(qrShareUrl, QR_CONFIG.pdfSize);
                 
                 // 预加载小人图片用于 PDF
                 const pdfPersonaImg = new Image();
@@ -1510,7 +1497,7 @@
                                 const iconImages = [];
                                 sortedDimKeys.forEach(key => {
                                     const img = new Image();
-                                    img.src = `assets/icon/${dimensionScores[key].name}.png`;
+                                    img.src = `assets/dimension/${dimensionScores[key].name}.png`;
                                     iconImages.push(img);
                                 });
                                 
@@ -1526,7 +1513,7 @@
                                     const x = center + radius * Math.cos(rad);
                                     const y = center + radius * Math.sin(rad);
                                     const isHigh = dim.percentage === maxPercentage;
-                                    const imgSrc = iconImages[idx].complete ? iconImages[idx].src : `assets/icon/${dim.name}.png`;
+                                    const imgSrc = iconImages[idx].complete ? iconImages[idx].src : `assets/dimension/${dim.name}.png`;
                                     
                                     return `
                                         <div style="position: absolute; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%); text-align: center;">
@@ -1552,7 +1539,7 @@
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="background: ${rankColor}; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; flex-shrink: 0;">${idx + 1}</span>
-                                                <img src="assets/icon/${dim.name}.png?v=${pdfTimestamp}" style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;">
+                                                <img src="assets/dimension/${dim.name}.png?v=${pdfTimestamp}" style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;">
                                                 <span style="font-size: 10px; font-weight: ${isTop || isSecond ? '700' : '600'}; color: ${isTop ? '#FF6B6B' : isSecond ? '#FF8C94' : '#333'}; white-space: nowrap;">${dim.name}</span>
                                             </div>
                                             <span style="font-size: 11px; font-weight: 700; color: ${isTop ? '#FF6B6B' : isSecond ? '#FF8C94' : '#666'}; flex-shrink: 0;">${Math.round(dim.percentage * 100)}%</span>
@@ -1621,7 +1608,7 @@
             const imgData1 = canvas1.toDataURL('image/png', 1.0);
             const imgWidth = 210;
             const imgHeight = 297;
-            doc.addImage(imgData1, 'JPEG', 0, 0, imgWidth, imgHeight);
+            doc.addImage(imgData1, 'PNG', 0, 0, imgWidth, imgHeight);
             
             // 第二页
             pdfContainer.innerHTML = page2Html;
@@ -1769,8 +1756,8 @@
             const description = generatePersonaDescription(persona);
             document.getElementById('poster-description').innerHTML = description;
             
-            // 生成并设置二维码（异步）
-            const qrCodeDataUrl = await generateQRCodeDataURL(QR_CONFIG.url, QR_CONFIG.posterSize);
+            const posterQrUrl = await getQrCodeShareUrl();
+            const qrCodeDataUrl = await generateQRCodeDataURL(posterQrUrl, QR_CONFIG.posterSize);
             const qrCodeContainer = document.getElementById('poster-qrcode');
             if (qrCodeDataUrl) {
                 qrCodeContainer.innerHTML = `

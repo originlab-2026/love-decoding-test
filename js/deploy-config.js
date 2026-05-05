@@ -35,11 +35,11 @@ const DEPLOY_CONFIG = {
             github: 'https://originlab-2026.github.io/love-decoding-test/'
         },
         futurePartner: {
-            cloudflare: 'https://<预留>.pages.dev/',
+            cloudflare: 'https://future-partner-test.pages.dev/',
             github: 'https://originlab-2026.github.io/future-partner-test/'
         },
         catalog: {
-            cloudflare: 'https://<预留>.pages.dev/',
+            cloudflare: 'https://test-catalog.pages.dev/',
             github: 'https://originlab-2026.github.io/test-catalog/'
         }
     },
@@ -194,6 +194,104 @@ async function checkPlatformAvailability(platformId, timeout = DEPLOY_CONFIG.det
     return { available: false, responseTime: Infinity };
 }
 
+const CATALOG_URL_CACHE_KEY = 'deploy_catalog_best_url_v1';
+const CATALOG_URL_CACHE_TTL_MS = 120000;
+
+async function checkAbsoluteUrlReachable(fullCheckUrl, timeout = DEPLOY_CONFIG.detection.timeout) {
+    const startTime = performance.now();
+    if (DEPLOY_CONFIG.detection.useHeadRequest) {
+        try {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeout);
+            await fetch(fullCheckUrl, {
+                method: 'HEAD',
+                mode: 'no-cors',
+                signal: controller.signal
+            });
+            clearTimeout(timeoutId);
+            console.log(`[DeployConfig] URL reachable (HEAD): ${fullCheckUrl} (${(performance.now() - startTime).toFixed(0)}ms)`);
+            return true;
+        } catch (e) {
+            console.log(`[DeployConfig] HEAD failed for ${fullCheckUrl}`);
+        }
+    }
+    if (DEPLOY_CONFIG.detection.useImageFallback) {
+        return new Promise((resolve) => {
+            const img = new Image();
+            let resolved = false;
+            const timer = setTimeout(() => {
+                if (!resolved) {
+                    resolved = true;
+                    resolve(false);
+                }
+            }, timeout);
+            img.onload = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    resolve(true);
+                }
+            };
+            img.onerror = () => {
+                if (!resolved) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    resolve(false);
+                }
+            };
+            img.src = fullCheckUrl;
+        });
+    }
+    return false;
+}
+
+async function getBestCatalogUrl() {
+    try {
+        const raw = sessionStorage.getItem(CATALOG_URL_CACHE_KEY);
+        if (raw) {
+            const { url, ts } = JSON.parse(raw);
+            if (Date.now() - ts < CATALOG_URL_CACHE_TTL_MS && url) {
+                console.log('[DeployConfig] Using cached catalog URL:', url);
+                return url;
+            }
+        }
+    } catch (e) {
+        /* ignore */
+    }
+
+    const ext = DEPLOY_CONFIG.external.catalog;
+    if (!ext) return null;
+
+    const cfBase = (ext.cloudflare || '').replace(/\/?$/, '/');
+    const ghBase = (ext.github || '').replace(/\/?$/, '/');
+
+    let chosen = null;
+    if (cfBase && !isPlaceholderDeployUrl(ext.cloudflare)) {
+        const probe = cfBase + 'favicon.ico?' + Date.now();
+        const ok = await checkAbsoluteUrlReachable(probe);
+        if (ok) {
+            chosen = cfBase;
+            console.log('[DeployConfig] Catalog: using Cloudflare');
+        }
+    }
+    if (!chosen && ghBase && !isPlaceholderDeployUrl(ext.github)) {
+        chosen = ghBase;
+        console.log('[DeployConfig] Catalog: using GitHub fallback');
+    }
+    if (!chosen && cfBase && !isPlaceholderDeployUrl(ext.cloudflare)) {
+        chosen = cfBase;
+    }
+
+    if (chosen) {
+        try {
+            sessionStorage.setItem(CATALOG_URL_CACHE_KEY, JSON.stringify({ url: chosen, ts: Date.now() }));
+        } catch (e) {
+            /* ignore */
+        }
+    }
+    return chosen || null;
+}
+
 async function checkAllPlatforms() {
     const enabledPlatforms = DEPLOY_CONFIG.platforms.filter(p => p.enabled);
     console.log(`[DeployConfig] Checking ${enabledPlatforms.length} platforms...`);
@@ -252,6 +350,10 @@ async function getFallbackUrl() {
 }
 
 async function getBestAvailableUrl(target = null) {
+    if (target === 'catalog') {
+        return getBestCatalogUrl();
+    }
+
     let results = getCachedResults();
 
     if (!results) {
@@ -352,8 +454,64 @@ function preloadPlatformChecks() {
     }, DEPLOY_CONFIG.detection.precheckDelay);
 }
 
+const QR_SHARE_URL_CACHE_KEY = 'deploy_qr_share_url_v1';
+const QR_SHARE_URL_CACHE_TTL_MS = 120000;
+
+/**
+ * PDF/海报二维码：优先 Cloudflare 公网地址，探测失败则用 GitHub Pages。
+ */
+async function getQrCodeShareUrl() {
+    try {
+        const raw = sessionStorage.getItem(QR_SHARE_URL_CACHE_KEY);
+        if (raw) {
+            const { url, ts } = JSON.parse(raw);
+            if (Date.now() - ts < QR_SHARE_URL_CACHE_TTL_MS && url) {
+                return url;
+            }
+        }
+    } catch (e) {
+        /* ignore */
+    }
+
+    const cfPlat = DEPLOY_CONFIG.platforms.find(p => p.id === 'cloudflare');
+    const ghPlat = DEPLOY_CONFIG.platforms.find(p => p.id === 'github');
+    const cfUrl = cfPlat && !isPlaceholderDeployUrl(cfPlat.baseUrl) ? cfPlat.baseUrl.replace(/\/?$/, '/') : '';
+    const ghUrl = ghPlat && ghPlat.baseUrl && !isPlaceholderDeployUrl(ghPlat.baseUrl) ? ghPlat.baseUrl.replace(/\/?$/, '/') : '';
+
+    let chosen = ghUrl || cfUrl;
+    if (cfUrl) {
+        const probe = cfUrl + 'favicon.ico?' + Date.now();
+        try {
+            const ok = await checkAbsoluteUrlReachable(probe);
+            if (ok) {
+                chosen = cfUrl;
+            } else if (ghUrl) {
+                chosen = ghUrl;
+            }
+        } catch (e) {
+            if (ghUrl) chosen = ghUrl;
+        }
+    }
+
+    if (!chosen && typeof window !== 'undefined' && window.location && window.location.origin) {
+        chosen = window.location.origin + '/';
+    }
+
+    if (chosen) {
+        try {
+            sessionStorage.setItem(QR_SHARE_URL_CACHE_KEY, JSON.stringify({ url: chosen, ts: Date.now() }));
+        } catch (e) {
+            /* ignore */
+        }
+    }
+
+    return chosen || '';
+}
+
 function clearPlatformCache() {
     sessionStorage.removeItem(PLATFORM_CACHE_KEY);
+    sessionStorage.removeItem(CATALOG_URL_CACHE_KEY);
+    sessionStorage.removeItem(QR_SHARE_URL_CACHE_KEY);
     console.log('[DeployConfig] Cache cleared');
 }
 
@@ -503,6 +661,7 @@ if (typeof module !== 'undefined' && module.exports) {
         preloadPlatformChecks,
         clearPlatformCache,
         getQRCodeConfig,
+        getQrCodeShareUrl,
         generatePlatformAwareQRCode,
         generateQRCodeDataURL
     };

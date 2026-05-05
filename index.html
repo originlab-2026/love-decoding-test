@@ -17,8 +17,7 @@
         <div class="container">
             <a href="index.html" class="logo">爱的解码测试</a>
             <ul class="nav-links">
-                <li><a href="index.html" class="active">首页</a></li>
-                <li><a href="javascript:void(0)" onclick="navigateWithFallback('catalog', this)">测试合集</a></li>
+                <li><a href="javascript:void(0)" class="active" onclick="navigateWithFallback('catalog', this)">测试合集</a></li>
             </ul>
         </div>
     </nav>
@@ -28,9 +27,7 @@
         <!-- 首页 Banner 图片 -->
         <div class="fade-in" style="margin: 0; text-align: center;">
             <picture>
-                <source srcset="assets/images/首页.webp" type="image/webp">
-                <source srcset="assets/images/首页.png" type="image/png">
-                <img src="assets/images/首页.png?v=3" 
+                <img src="assets/elements/爱的五种语言首页.png?v=3" 
                      alt="起源研究社心理测试 - 爱的解码" 
                      loading="eager"
                      fetchpriority="high"
@@ -43,9 +40,7 @@
         <div style="text-align: center; margin: 0 0 32px;">
             <a href="quiz.html" id="start-btn">
                 <picture>
-                    <source srcset="assets/images/按钮 - 开始测试.webp" type="image/webp">
-                    <source srcset="assets/images/按钮 - 开始测试.png" type="image/png">
-                    <img src="assets/images/按钮 - 开始测试.png" 
+                    <img src="assets/elements/开始测试按钮.png" 
                          alt="开始测试" 
                          loading="eager"
                          fetchpriority="high"
@@ -292,9 +287,9 @@
                                 ${quizData.dimensions.map(dim => `
                                     <div class="dimension-card">
                                         <picture>
-                                            <source srcset="assets/icon/${dim.dimension_name}.webp" type="image/webp">
-                                            <source srcset="assets/icon/${dim.dimension_name}.png" type="image/png">
-                                            <img src="assets/icon/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
+                                            <source srcset="assets/dimension/${dim.dimension_name}.webp" type="image/webp">
+                                            <source srcset="assets/dimension/${dim.dimension_name}.png" type="image/png">
+                                            <img src="assets/dimension/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
                                         </picture>
                                         <h3>${dim.dimension_name}</h3>
                                         <p>${dim.description}</p>
@@ -443,9 +438,9 @@
                             ${defaultQuizData.dimensions.map(dim => `
                                 <div class="dimension-card">
                                     <picture>
-                                        <source srcset="assets/icon/${dim.dimension_name}.webp" type="image/webp">
-                                        <source srcset="assets/icon/${dim.dimension_name}.png" type="image/png">
-                                        <img src="assets/icon/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
+                                        <source srcset="assets/dimension/${dim.dimension_name}.webp" type="image/webp">
+                                        <source srcset="assets/dimension/${dim.dimension_name}.png" type="image/png">
+                                        <img src="assets/dimension/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
                                     </picture>
                                     <h3>${dim.dimension_name}</h3>
                                     <p>${dim.description}</p>
