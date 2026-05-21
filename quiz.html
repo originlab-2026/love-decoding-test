@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>答题 - 心理测试</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="preload" as="image" href="assets/progress bar/草地进度条.webp?v=5" type="image/webp">
+    <link rel="preload" as="image" href="assets/progress bar/进度条小猫1.webp?v=5" type="image/webp">
 </head>
 <body>
     <!-- 导航栏 -->
@@ -31,15 +33,15 @@
                 <div id="progress-container" style="position: relative; height: 15px; border-radius: 12px; overflow: visible; background: #e8f5e9; margin-top: 40px;">
                     <!-- 草地背景 (预加载) -->
                     <picture>
-                        <source srcset="assets/progress bar/草地进度条.webp" type="image/webp">
-                        <source srcset="assets/progress bar/草地进度条.png" type="image/png">
-                        <img src="assets/progress bar/草地进度条.png?v=2" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; z-index: 5;" alt="草地" loading="eager" fetchpriority="high">
+                        <source srcset="assets/progress bar/草地进度条.webp?v=5" type="image/webp">
+                        <source srcset="assets/progress bar/草地进度条.png?v=5" type="image/png">
+                        <img src="assets/progress bar/草地进度条.png?v=5" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; z-index: 5;" alt="草地" loading="eager" fetchpriority="high" decoding="async">
                     </picture>
                     <!-- 进度遮罩 -->
                     <div id="progress-mask" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: rgba(255,255,255,0.3); transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 6; border-radius: 12px;"></div>
                     <!-- 小猫 -->
                     <div id="cat-walker" style="position: absolute; bottom: 0; transform: translateX(-50%); left: 0%; transition: left 0.5s cubic-bezier(0.4, 0, 0.2, 1); z-index: 4;">
-                        <img id="cat-frame" src="assets/progress bar/进度条小猫1.png?v=3" style="width: 40px; height: 40px; object-fit: contain; display: block;" alt="小猫" loading="eager" fetchpriority="high">
+                        <img id="cat-frame" src="assets/progress bar/进度条小猫1.webp?v=5" style="width: 40px; height: 40px; object-fit: contain; display: block;" alt="小猫" loading="eager" fetchpriority="high" decoding="async" onerror="this.onerror=null;this.src='assets/progress bar/进度条小猫1.png?v=5'">
                     </div>
                 </div>
             </div>
@@ -313,23 +315,32 @@
         }
 
         // 小猫走路动画
+        const PROGRESS_ASSET_VERSION = '5';
+        const PROGRESS_BAR_BASE = 'assets/progress bar/';
+        function progressCatFrameSrc(frame, ext) {
+            return PROGRESS_BAR_BASE + '进度条小猫' + frame + '.' + ext + '?v=' + PROGRESS_ASSET_VERSION;
+        }
+        function progressCatPreferredExt() {
+            const c = document.createElement('canvas');
+            return c.toDataURL('image/webp').indexOf('data:image/webp') === 0 ? 'webp' : 'png';
+        }
+        const progressCatExt = progressCatPreferredExt();
         let catAnimationInterval = null;
         let currentCatFrame = 1;
-        // 预加载小猫图片到内存（使用固定版本号避免缓存问题）
-        const catImages = {
-            1: new Image(),
-            2: new Image()
-        };
-        catImages[1].src = 'assets/progress bar/进度条小猫1.png?v=3';
-        catImages[2].src = 'assets/progress bar/进度条小猫2.png?v=3';
+        const catImages = { 1: new Image(), 2: new Image() };
+        catImages[1].src = progressCatFrameSrc(1, progressCatExt);
+        catImages[2].src = progressCatFrameSrc(2, progressCatExt);
+        if (progressCatExt === 'webp') {
+            new Image().src = progressCatFrameSrc(2, 'png');
+        }
                 
         function startCatAnimation() {
             if (catAnimationInterval) return;
             catAnimationInterval = setInterval(() => {
                 currentCatFrame = currentCatFrame === 1 ? 2 : 1;
-                // 使用预加载的图片路径
-                document.getElementById('cat-frame').src = catImages[currentCatFrame].src;
-            }, 200); // 每 200ms 切换一次，快速走路效果
+                const el = document.getElementById('cat-frame');
+                if (el) el.src = catImages[currentCatFrame].src;
+            }, 200);
         }
         
         function stopCatAnimation() {

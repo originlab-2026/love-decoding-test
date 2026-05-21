@@ -10,6 +10,7 @@
     <meta name="keywords" content="心理测试,爱的五种语言,情感测试,性格测试">
     <title>起源研究社 - 心理测试</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="preload" as="image" href="assets/elements/爱的五种语言首页.webp?v=5" type="image/webp">
 </head>
 <body>
     <!-- 导航栏 -->
@@ -27,7 +28,8 @@
         <!-- 首页 Banner 图片 -->
         <div class="fade-in" style="margin: 0; text-align: center;">
             <picture>
-                <img src="assets/elements/爱的五种语言首页.png?v=3" 
+                <source type="image/webp" srcset="assets/elements/爱的五种语言首页.webp?v=5">
+                <img src="assets/elements/爱的五种语言首页.png?v=5" 
                      alt="起源研究社心理测试 - 爱的解码" 
                      loading="eager"
                      fetchpriority="high"
@@ -40,7 +42,8 @@
         <div style="text-align: center; margin: 0 0 32px;">
             <a href="quiz.html" id="start-btn">
                 <picture>
-                    <img src="assets/elements/开始测试按钮.png" 
+                    <source type="image/webp" srcset="assets/elements/开始测试按钮.webp?v=5">
+                    <img src="assets/elements/开始测试按钮.png?v=5" 
                          alt="开始测试" 
                          loading="eager"
                          fetchpriority="high"
@@ -166,7 +169,7 @@
                 // 更新维度预览 - 横向滑动轮播
                 const dimensionsContainer = document.getElementById('dimensions-preview');
                 if (quizData.dimensions && quizData.dimensions.length > 0) {
-                    const timestamp = Date.now();
+                    const DIMENSION_ASSET_V = '5';
                     dimensionsContainer.innerHTML = `
                         <style>
                             .dimensions-carousel {
@@ -287,9 +290,9 @@
                                 ${quizData.dimensions.map(dim => `
                                     <div class="dimension-card">
                                         <picture>
-                                            <source srcset="assets/dimension/${dim.dimension_name}.webp" type="image/webp">
-                                            <source srcset="assets/dimension/${dim.dimension_name}.png" type="image/png">
-                                            <img src="assets/dimension/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
+                                            <source srcset="assets/dimension/${dim.dimension_name}.webp?v=${DIMENSION_ASSET_V}" type="image/webp">
+                                            <source srcset="assets/dimension/${dim.dimension_name}.png?v=${DIMENSION_ASSET_V}" type="image/png">
+                                            <img src="assets/dimension/${dim.dimension_name}.png?v=${DIMENSION_ASSET_V}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
                                         </picture>
                                         <h3>${dim.dimension_name}</h3>
                                         <p>${dim.description}</p>
@@ -317,7 +320,7 @@
                 document.getElementById('question-count').textContent = `${defaultQuizData.nbr_question} `;
                 
                 const dimensionsContainer = document.getElementById('dimensions-preview');
-                const timestamp = Date.now();
+                const DIMENSION_ASSET_V = '5';
                 dimensionsContainer.innerHTML = `
                     <style>
                         .dimensions-carousel {
@@ -438,9 +441,9 @@
                             ${defaultQuizData.dimensions.map(dim => `
                                 <div class="dimension-card">
                                     <picture>
-                                        <source srcset="assets/dimension/${dim.dimension_name}.webp" type="image/webp">
-                                        <source srcset="assets/dimension/${dim.dimension_name}.png" type="image/png">
-                                        <img src="assets/dimension/${dim.dimension_name}.png?v=${timestamp}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
+                                        <source srcset="assets/dimension/${dim.dimension_name}.webp?v=${DIMENSION_ASSET_V}" type="image/webp">
+                                        <source srcset="assets/dimension/${dim.dimension_name}.png?v=${DIMENSION_ASSET_V}" type="image/png">
+                                        <img src="assets/dimension/${dim.dimension_name}.png?v=${DIMENSION_ASSET_V}" alt="${dim.dimension_name}" loading="lazy" decoding="async">
                                     </picture>
                                     <h3>${dim.dimension_name}</h3>
                                     <p>${dim.description}</p>

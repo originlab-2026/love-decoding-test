@@ -236,8 +236,14 @@
                 </button>
             </div>
             <div class="qrcode-container">
-                <img id="qrcode-wechat" class="qrcode-img" src="assets/payment/wechat-qrcode.jpg?v=3" alt="微信支付收款海报">
-                <img id="qrcode-alipay" class="qrcode-img" src="assets/payment/alipay-qrcode.jpg?v=3" alt="支付宝收款海报" style="display:none">
+                <picture id="qrcode-wechat-wrap" class="qrcode-img">
+                    <source srcset="assets/payment/wechat-qrcode.webp?v=5" type="image/webp">
+                    <img id="qrcode-wechat" src="assets/payment/wechat-qrcode.jpg?v=5" alt="微信支付收款海报" loading="lazy" decoding="async">
+                </picture>
+                <picture id="qrcode-alipay-wrap" class="qrcode-img" style="display:none">
+                    <source srcset="assets/payment/alipay-qrcode.webp?v=5" type="image/webp">
+                    <img id="qrcode-alipay" src="assets/payment/alipay-qrcode.jpg?v=5" alt="支付宝收款海报" loading="lazy" decoding="async">
+                </picture>
             </div>
 
             <!-- 长按提示 - 微信 -->
@@ -388,6 +394,30 @@
         let dimensionScores = {};
         let radarChart = null;
         let currentPersona = null;
+
+        const ASSET_IMAGE_VERSION = '5';
+        function encPathSeg(s) {
+            return encodeURIComponent(String(s || '').trim());
+        }
+        function personaWebp(name) {
+            const e = encPathSeg(name);
+            return e ? 'assets/persona/' + e + '.webp?v=' + ASSET_IMAGE_VERSION : '';
+        }
+        function personaJpg(name) {
+            const e = encPathSeg(name);
+            return e ? 'assets/persona/' + e + '.jpg?v=' + ASSET_IMAGE_VERSION : '';
+        }
+        function personaDefaultJpg() {
+            return 'assets/persona/default.jpg?v=' + ASSET_IMAGE_VERSION;
+        }
+        function dimensionWebp(name) {
+            const e = encPathSeg(name);
+            return e ? 'assets/dimension/' + e + '.webp?v=' + ASSET_IMAGE_VERSION : '';
+        }
+        function dimensionPng(name) {
+            const e = encPathSeg(name);
+            return e ? 'assets/dimension/' + e + '.png?v=' + ASSET_IMAGE_VERSION : '';
+        }
 
         // 小人数据映射表 - 20个小人完整对照表
         // 格式：首要爱语代码|次要爱语代码 -> 小人信息
@@ -1052,31 +1082,22 @@
             const resultText = generateResultText(currentPersona);
             const description = generatePersonaDescription(currentPersona);
             const container = document.getElementById('persona-section');
-            
-            // 预加载小人图片
-            const personaImg = new Image();
-            personaImg.src = `assets/persona/${currentPersona.name}.jpg`;
-            personaImg.onload = () => {
-                // 图片加载完成后触发重绘
-                const imgEl = document.querySelector('.persona-image');
-                if (imgEl && personaImg.complete) {
-                    imgEl.src = personaImg.src;
-                }
-            };
+            const webp = personaWebp(currentPersona.name);
+            const jpg = personaJpg(currentPersona.name);
             
             container.innerHTML = `
                 <div class="persona-container">
                     <div class="persona-image-wrapper">
                         <picture>
-                            <source srcset="assets/persona/${currentPersona.name}.webp" type="image/webp">
-                            <source srcset="assets/persona/${currentPersona.name}.jpg" type="image/jpeg">
-                            <img src="assets/persona/${currentPersona.name}.jpg" 
+                            <source srcset="${webp}" type="image/webp">
+                            <source srcset="${jpg}" type="image/jpeg">
+                            <img src="${jpg}" 
                                  alt="${currentPersona.name}" 
                                  class="persona-image"
                                  loading="eager"
                                  fetchpriority="high"
                                  decoding="async"
-                                 onerror="this.src='assets/persona/default.jpg'">
+                                 onerror="this.src='${personaDefaultJpg()}'">
                         </picture>
                     </div>
                     <div class="persona-content">
@@ -1220,7 +1241,6 @@
             const chartContainer = document.getElementById('radarChart')?.parentElement;
             if (!container || !chartContainer) return;
             
-            const timestamp = Date.now();
             const maxVal = Math.max(...data);
             
             // 获取实际容器大小（响应式）
@@ -1262,9 +1282,9 @@
                                 text-align: center;
                                 z-index: 100;">
                         <picture>
-                            <source srcset="assets/dimension/${dim.name}.webp" type="image/webp">
-                            <source srcset="assets/dimension/${dim.name}.png" type="image/png">
-                            <img src="assets/dimension/${dim.name}.png?v=${timestamp}" 
+                            <source srcset="${dimensionWebp(dim.name)}" type="image/webp">
+                            <source srcset="${dimensionPng(dim.name)}" type="image/png">
+                            <img src="${dimensionPng(dim.name)}" 
                                  alt="${dim.name}"
                                  loading="lazy"
                                  decoding="async"
@@ -1300,7 +1320,11 @@
                     <div class="dimension-card" style="${isTop ? 'border-left-width: 6px; background: linear-gradient(to right, #FFF0F1, #fff);' : ''}">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
                             <div style="display: flex; align-items: center; gap: 12px;">
-                                <img src="assets/dimension/${dim.name}.png?v=${Date.now()}" alt="${dim.name}" style="width: 48px; height: 48px; object-fit: contain;">
+                                <picture>
+                                    <source srcset="${dimensionWebp(dim.name)}" type="image/webp">
+                                    <source srcset="${dimensionPng(dim.name)}" type="image/png">
+                                    <img src="${dimensionPng(dim.name)}" alt="${dim.name}" style="width: 48px; height: 48px; object-fit: contain;" loading="lazy" decoding="async">
+                                </picture>
                                 <h3 style="margin: 0; ${isTop ? 'font-size: 1.3rem; color: #FF6B6B;' : ''}">${dim.name}</h3>
                             </div>
                             <span class="dimension-score">${Math.round(dim.percentage * 100)}%</span>
@@ -1404,7 +1428,6 @@
                 // 获取小人信息用于PDF
                 const personaForPdf = currentPersona || getPersonaInfo();
                 const personaDescForPdf = generatePersonaDescription(personaForPdf);
-                const pdfTimestamp = Date.now();
                 
                 // 强制刷新雷达图
                 if (radarChart) {
@@ -1413,10 +1436,8 @@
                 
                 const qrShareUrl = await getQrCodeShareUrl();
                 const qrCodeDataUrl = await generateQRCodeDataURL(qrShareUrl, QR_CONFIG.pdfSize);
-                
-                // 预加载小人图片用于 PDF
-                const pdfPersonaImg = new Image();
-                pdfPersonaImg.src = `assets/persona/${personaForPdf.name}.jpg`;
+                const pdfPersonaJpg = personaJpg(personaForPdf.name);
+                const pdfPersonaWebp = personaWebp(personaForPdf.name);
                                 
                 // 构建第一页内容 - 小人海报
                 let page1Html = `
@@ -1430,12 +1451,14 @@
                                     
                     <!-- 小人海报展示区域 - 使用 flex:1 填满剩余空间 -->
                     <div style="background: linear-gradient(135deg, #FF8C94 0%, #FFB6C1 100%); border-radius: 16px; padding: 30px; text-align: center; color: white; flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;">
-                        <img src="${pdfPersonaImg.complete ? pdfPersonaImg.src : `assets/persona/${personaForPdf.name}.jpg`}" 
+                        <picture>
+                            <source srcset="${pdfPersonaWebp}" type="image/webp">
+                            <img src="${pdfPersonaJpg}" 
                              alt="${personaForPdf.name}" 
-                             style="width: 180px; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); margin: 0 auto 15px auto; display: block;"
-                             onload="this.style.opacity='1'"
-                             style="opacity:0;transition:opacity 0.3s"
+                             style="width: 180px; height: auto; object-fit: contain; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,0.25); margin: 0 auto 15px auto; display: block; opacity: 1;"
+                             crossorigin="anonymous"
                              onerror="this.style.display='none'">
+                        </picture>
                         <h2 style="font-size: 26px; margin: 0 0 12px; font-weight: 700;">${personaForPdf.name}</h2>
                         <div style="margin-bottom: 15px;">
                             <span style="background: white; color: #FF8C94; padding: 6px 14px; border-radius: 16px; font-size: 12px; margin: 0 4px; display: inline-block; font-weight: 600;">${personaForPdf.tags[0]}</span>
@@ -1497,7 +1520,7 @@
                                 const iconImages = [];
                                 sortedDimKeys.forEach(key => {
                                     const img = new Image();
-                                    img.src = `assets/dimension/${dimensionScores[key].name}.png`;
+                                    img.src = dimensionPng(dimensionScores[key].name);
                                     iconImages.push(img);
                                 });
                                 
@@ -1513,7 +1536,7 @@
                                     const x = center + radius * Math.cos(rad);
                                     const y = center + radius * Math.sin(rad);
                                     const isHigh = dim.percentage === maxPercentage;
-                                    const imgSrc = iconImages[idx].complete ? iconImages[idx].src : `assets/dimension/${dim.name}.png`;
+                                    const imgSrc = iconImages[idx].complete ? iconImages[idx].src : dimensionPng(dim.name);
                                     
                                     return `
                                         <div style="position: absolute; left: ${x}px; top: ${y}px; transform: translate(-50%, -50%); text-align: center;">
@@ -1539,7 +1562,10 @@
                                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px;">
                                             <div style="display: flex; align-items: center; gap: 5px;">
                                                 <span style="background: ${rankColor}; color: white; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 8px; font-weight: 700; flex-shrink: 0;">${idx + 1}</span>
-                                                <img src="assets/dimension/${dim.name}.png?v=${pdfTimestamp}" style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;">
+                                                <picture>
+                                                    <source srcset="${dimensionWebp(dim.name)}" type="image/webp">
+                                                    <img src="${dimensionPng(dim.name)}" style="width: 16px; height: 16px; object-fit: contain; flex-shrink: 0;">
+                                                </picture>
                                                 <span style="font-size: 10px; font-weight: ${isTop || isSecond ? '700' : '600'}; color: ${isTop ? '#FF6B6B' : isSecond ? '#FF8C94' : '#333'}; white-space: nowrap;">${dim.name}</span>
                                             </div>
                                             <span style="font-size: 11px; font-weight: 700; color: ${isTop ? '#FF6B6B' : isSecond ? '#FF8C94' : '#666'}; flex-shrink: 0;">${Math.round(dim.percentage * 100)}%</span>
@@ -1732,10 +1758,13 @@
             // 设置小人图片 - 大幅展示
             const imageContainer = document.getElementById('poster-persona-image');
             imageContainer.innerHTML = `
-                <img src="assets/persona/${persona.name}.jpg" 
+                <picture>
+                    <source srcset="${personaWebp(persona.name)}" type="image/webp">
+                    <img src="${personaJpg(persona.name)}" 
                      alt="${persona.name}" 
                      style="width: 100%; max-width: 320px; height: auto; object-fit: contain; border-radius: 16px; box-shadow: 0 8px 30px rgba(0,0,0,0.25);"
-                     onerror="this.src='assets/persona/default.jpg'">
+                     onerror="this.src='${personaDefaultJpg()}'">
+                </picture>
             `;
             
             // 设置小人名称
@@ -1959,7 +1988,7 @@
             // 预加载小人图片
             const persona = getPersonaInfo();
             const img = new Image();
-            img.src = `assets/persona/${persona.name}.jpg`;
+            img.src = personaJpg(persona.name);
 
             // 优先渲染小人形象（用户最关注的内容）
             requestAnimationFrame(() => {
@@ -1994,8 +2023,8 @@
                     document.querySelectorAll('.qrcode-tab').forEach(t => t.classList.remove('active'));
                     this.classList.add('active');
                     const type = this.dataset.tab;
-                    document.getElementById('qrcode-wechat').style.display = type === 'wechat' ? 'block' : 'none';
-                    document.getElementById('qrcode-alipay').style.display = type === 'alipay' ? 'block' : 'none';
+                    document.getElementById('qrcode-wechat-wrap').style.display = type === 'wechat' ? 'block' : 'none';
+                    document.getElementById('qrcode-alipay-wrap').style.display = type === 'alipay' ? 'block' : 'none';
                     document.getElementById('guide-wechat').style.display = type === 'wechat' ? 'block' : 'none';
                     document.getElementById('guide-alipay').style.display = type === 'alipay' ? 'block' : 'none';
                     document.getElementById('hint-wechat').style.display = type === 'wechat' ? 'block' : 'none';
