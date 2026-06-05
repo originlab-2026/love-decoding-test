@@ -566,6 +566,39 @@ function clearPlatformCache() {
     console.log('[DeployConfig] Cache cleared');
 }
 
+const FREE_MODE_STORAGE_KEY = 'love_decoding_free_mode';
+
+/** 捕获 ?free=1 免费入口标记，写入 session 并清理 URL 参数 */
+function captureFreeModeFromUrl() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('free') !== '1') {
+        return;
+    }
+    try {
+        sessionStorage.setItem(FREE_MODE_STORAGE_KEY, '1');
+    } catch (e) {
+        /* ignore */
+    }
+    params.delete('free');
+    const query = params.toString();
+    const clean = query
+        ? `${window.location.pathname}?${query}`
+        : window.location.pathname;
+    window.history.replaceState({}, '', clean);
+}
+
+function isPaywallEnabled() {
+    try {
+        return sessionStorage.getItem(FREE_MODE_STORAGE_KEY) !== '1';
+    } catch (e) {
+        return true;
+    }
+}
+
+if (typeof window !== 'undefined') {
+    captureFreeModeFromUrl();
+}
+
 function getQRCodeConfig() {
     const platform = detectDeployPlatform();
     const hostname = window.location.hostname;
@@ -717,6 +750,8 @@ if (typeof module !== 'undefined' && module.exports) {
         getQRCodeConfig,
         getQrCodeShareUrl,
         generatePlatformAwareQRCode,
-        generateQRCodeDataURL
+        generateQRCodeDataURL,
+        captureFreeModeFromUrl,
+        isPaywallEnabled
     };
 }

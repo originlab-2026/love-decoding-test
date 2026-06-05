@@ -2062,6 +2062,13 @@
                     return;
                 }
 
+                // 免费渠道（?free=1 入口，标记已写入 sessionStorage）
+                if (!isPaywallEnabled()) {
+                    document.getElementById('result-main-content').style.display = 'block';
+                    initializeResults();
+                    return;
+                }
+
                 // 检查付费状态
                 if (checkPaymentStatus()) {
                     // 已付费，直接展示结果
