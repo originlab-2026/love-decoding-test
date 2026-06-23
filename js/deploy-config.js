@@ -38,6 +38,10 @@ const DEPLOY_CONFIG = {
             cloudflare: 'https://future-partner-test.pages.dev/',
             github: 'https://originlab-2026.github.io/future-partner-test/'
         },
+        stressCreature: {
+            cloudflare: 'https://stress-creature-test.pages.dev/',
+            github: 'https://originlab-2026.github.io/stress-creature-test/'
+        },
         catalog: {
             cloudflare: 'https://test-catalog.pages.dev/',
             github: 'https://originlab-2026.github.io/test-catalog/'
@@ -566,6 +570,14 @@ function clearPlatformCache() {
     console.log('[DeployConfig] Cache cleared');
 }
 
+/**
+ * 推广链接（同一站点，URL 参数区分渠道；非两套独立部署）
+ * - 付费（默认）：{baseUrl}/  → 结果页显示付费墙
+ * - 免费渠道：{baseUrl}/?free=1  → 当前会话跳过付费墙（参数会自动从地址栏移除）
+ * - 调试：result.html?reset=1 | result.html?preview_paywall=1
+ *
+ * sessionStorage 键按项目隔离，避免 github.io 同域名下多测试互相影响。
+ */
 const FREE_MODE_STORAGE_KEY = 'love_decoding_free_mode';
 
 /** 捕获 ?free=1 免费入口标记，写入 session 并清理 URL 参数 */
