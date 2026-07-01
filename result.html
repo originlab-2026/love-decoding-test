@@ -1127,13 +1127,49 @@
             '身体的接触': 'Touch'
         };
 
+        function getOrderedDimensionKeys() {
+            if (quizData && quizData.dimensions) {
+                return quizData.dimensions.map(d => d.dimension_id);
+            }
+            return Object.keys(dimensionScores);
+        }
+
+        // 爱的解码：雷达基于各维独立归一化百分比，低区分度时展开形状
+        function getRadarProfileFraction(dimKey) {
+            return dimensionScores[dimKey]?.percentage || 0;
+        }
+
+        function buildRadarVisualSeries(dimKeys, getFraction) {
+            const pcts = dimKeys.map(key => Math.round(getFraction(key) * 100));
+            const labelData = dimKeys.map(key => Math.round((dimensionScores[key].percentage || 0) * 100));
+            const minP = Math.min(...pcts);
+            const maxP = Math.max(...pcts);
+            const range = maxP - minP;
+            const FLOOR = 34;
+            const CEIL = 92;
+
+            let chartData;
+            if (range < 10) {
+                const ranked = dimKeys.map((k, i) => ({ k, v: pcts[i] }))
+                    .sort((a, b) => b.v - a.v || dimKeys.indexOf(a.k) - dimKeys.indexOf(b.k));
+                const rankOf = {};
+                ranked.forEach((item, rank) => { rankOf[item.k] = rank; });
+                const step = (CEIL - FLOOR) / Math.max(dimKeys.length - 1, 1);
+                chartData = dimKeys.map(k => Math.round(CEIL - rankOf[k] * step));
+            } else {
+                chartData = pcts.map(p => Math.round(FLOOR + ((p - minP) / range) * (CEIL - FLOOR)));
+            }
+
+            const axisMin = Math.max(0, Math.min(...chartData) - 14);
+            return { chartData, labelData, axisMin };
+        }
+
         function renderCharts() {
-            const dimKeys = Object.keys(dimensionScores);
-            const sortedDimKeys = [...dimKeys].sort((a, b) => {
-                return dimensionScores[b].percentage - dimensionScores[a].percentage;
-            });
+            const dimKeys = getOrderedDimensionKeys();
+            const radarSeries = buildRadarVisualSeries(dimKeys, getRadarProfileFraction);
             const labels = dimKeys.map(key => dimensionScores[key].name);
-            const data = dimKeys.map(key => Math.round(dimensionScores[key].percentage * 100));
+            const data = radarSeries.chartData;
+            const labelData = radarSeries.labelData;
             
             // 计算最大和最小值用于渐变
             const maxVal = Math.max(...data);
@@ -1192,7 +1228,8 @@
                     },
                     scales: {
                         r: {
-                            beginAtZero: true,
+                            beginAtZero: false,
+                            min: radarSeries.axisMin,
                             max: 100,
                             ticks: {
                                 display: false,
@@ -1225,12 +1262,11 @@
             });
             
             // 渲染自定义维度标签
-            renderRadarLabels(dimKeys, data);
+            renderRadarLabels(dimKeys, labelData);
             
-            // 监听窗口大小变化，重新渲染标签
             window.addEventListener('resize', () => {
                 if (radarChart) {
-                    renderRadarLabels(dimKeys, data);
+                    renderRadarLabels(dimKeys, labelData);
                 }
             });
         }
