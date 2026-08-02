@@ -2020,10 +2020,12 @@
                 return;
             }
 
-            // 平台商品：确认有答案后再挂起上报（避免空结果页提前占坑）
+            // 平台商品：确认有答案后再挂起上报（按答案指纹去重，同会话可多次作答多次上报）
             if (typeof isPaywallEnabled === 'function' && !isPaywallEnabled() && !window.__paymentEventPending) {
                 try {
-                    const reportedKey = String(FREE_MODE_STORAGE_KEY).replace(/_free_mode$/, '_payment_event_reported');
+                    const reportedKey = typeof getPromoReportedStorageKey === 'function'
+                        ? getPromoReportedStorageKey(answers)
+                        : String(FREE_MODE_STORAGE_KEY).replace(/_free_mode$/, '_payment_event_reported');
                     const already = sessionStorage.getItem(reportedKey) === '1';
                     // #region agent log
                     if (typeof debugAgentLog === 'function') {
@@ -2031,7 +2033,8 @@
                             paywallEnabled: false,
                             reportedKey: reportedKey,
                             alreadyReported: already,
-                            answerCount: Object.keys(answers || {}).length
+                            answerCount: Object.keys(answers || {}).length,
+                            runId: 'post-fix'
                         });
                     }
                     // #endregion
@@ -2044,14 +2047,18 @@
                         };
                         // #region agent log
                         if (typeof debugAgentLog === 'function') {
-                            debugAgentLog('B', 'result.html:ensurePromoPending', 'pending set', { channel: 'promo' });
+                            debugAgentLog('B', 'result.html:ensurePromoPending', 'pending set', {
+                                channel: 'promo',
+                                runId: 'post-fix'
+                            });
                         }
                         // #endregion
                     } else {
                         // #region agent log
                         if (typeof debugAgentLog === 'function') {
                             debugAgentLog('A', 'result.html:ensurePromoPending', 'skipped pending due to reportedKey', {
-                                reportedKey: reportedKey
+                                reportedKey: reportedKey,
+                                runId: 'post-fix'
                             });
                         }
                         // #endregion
@@ -2062,7 +2069,8 @@
                 if (typeof debugAgentLog === 'function') {
                     debugAgentLog('C', 'result.html:ensurePromoPending', 'promo branch not entered', {
                         paywallEnabled: typeof isPaywallEnabled === 'function' ? isPaywallEnabled() : null,
-                        hasPending: !!window.__paymentEventPending
+                        hasPending: !!window.__paymentEventPending,
+                        runId: 'post-fix'
                     });
                 }
                 // #endregion
@@ -2179,20 +2187,8 @@
                     return;
                 }
 
-                // 平台商品渠道（?free=1 入口，标记已写入 sessionStorage）
-                // 注意：不要在这里提前写「已上报」——若结果页尚无答案会跳回测验，导致以后再也不报。
+                // 平台商品渠道（?free=1）：此处只展示结果；上报挂起改在 initializeResults（按答案指纹去重）
                 if (!isPaywallEnabled()) {
-                    try {
-                        const reportedKey = String(FREE_MODE_STORAGE_KEY).replace(/_free_mode$/, '_payment_event_reported');
-                        if (sessionStorage.getItem(reportedKey) !== '1') {
-                            window.__paymentEventPending = {
-                                orderNumber: '',
-                                channel: 'promo',
-                                paidAt: new Date().toISOString(),
-                                reportedKey
-                            };
-                        }
-                    } catch (e) { /* ignore */ }
                     document.getElementById('result-main-content').style.display = 'block';
                     initializeResults();
                     return;
