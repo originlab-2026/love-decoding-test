@@ -1981,7 +1981,7 @@
             StorageUtil.set(StorageKeys.USED_ORDER_NUMBERS, usedOrders);
             window.__paymentEventPending = { orderNumber: input, channel: 'paywall', paidAt };
             // #region agent log
-            fetch('http://127.0.0.1:7706/ingest/59075f42-ddc0-486b-8e2e-d301fc6ccd9e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A,E',location:'result.html:verifyAndUnlock',message:'paywall pending set',data:{orderLen:input.length,paidAt},timestamp:Date.now()})}).catch(()=>{});
+            fetch('https://payment-events.originlab-2026.workers.dev/api/debug-logs',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A,E',location:'result.html:verifyAndUnlock',message:'paywall pending set',data:{orderLen:input.length,paidAt},timestamp:Date.now()})}).catch(()=>{});
             // #endregion
             // 解锁结果
             unlockResults();
@@ -2047,7 +2047,7 @@
                 const pending = window.__paymentEventPending;
                 window.__paymentEventPending = null;
                 // #region agent log
-                fetch('http://127.0.0.1:7706/ingest/59075f42-ddc0-486b-8e2e-d301fc6ccd9e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A,E',location:'result.html:initializeResults:report',message:'calling report from initializeResults',data:{channel:pending.channel,orderLen:String(pending.orderNumber||'').length,personaName:persona&&persona.name},timestamp:Date.now()})}).catch(()=>{});
+                fetch('https://payment-events.originlab-2026.workers.dev/api/debug-logs',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A,E',location:'result.html:initializeResults:report',message:'calling report from initializeResults',data:{channel:pending.channel,orderLen:String(pending.orderNumber||'').length,personaName:persona&&persona.name},timestamp:Date.now()})}).catch(()=>{});
                 // #endregion
                 reportPaymentEvent({
                     orderNumber: pending.orderNumber,
@@ -2060,7 +2060,7 @@
                 }
             } else {
                 // #region agent log
-                fetch('http://127.0.0.1:7706/ingest/59075f42-ddc0-486b-8e2e-d301fc6ccd9e',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A',location:'result.html:initializeResults:noPending',message:'no pending or no report fn',data:{hasPending:!!window.__paymentEventPending,hasFn:typeof reportPaymentEvent==='function',paywallOn:typeof isPaywallEnabled==='function'?isPaywallEnabled():null},timestamp:Date.now()})}).catch(()=>{});
+                fetch('https://payment-events.originlab-2026.workers.dev/api/debug-logs',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'916d8f'},body:JSON.stringify({sessionId:'916d8f',hypothesisId:'A',location:'result.html:initializeResults:noPending',message:'no pending or no report fn',data:{hasPending:!!window.__paymentEventPending,hasFn:typeof reportPaymentEvent==='function',paywallOn:typeof isPaywallEnabled==='function'?isPaywallEnabled():null},timestamp:Date.now()})}).catch(()=>{});
                 // #endregion
             }
             const img = new Image();
