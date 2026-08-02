@@ -2034,6 +2034,9 @@
                     paidAt: pending.paidAt,
                     resultType: persona && persona.name ? persona.name : ''
                 });
+                if (pending.reportedKey) {
+                    try { sessionStorage.setItem(pending.reportedKey, '1'); } catch (e) { /* ignore */ }
+                }
             }
             const img = new Image();
             img.src = personaJpg(persona.name);
@@ -2111,15 +2114,16 @@
                 }
 
                 // 平台商品渠道（?free=1 入口，标记已写入 sessionStorage）
+                // 注意：不要在这里提前写「已上报」——若结果页尚无答案会跳回测验，导致以后再也不报。
                 if (!isPaywallEnabled()) {
                     try {
                         const reportedKey = String(FREE_MODE_STORAGE_KEY).replace(/_free_mode$/, '_payment_event_reported');
                         if (sessionStorage.getItem(reportedKey) !== '1') {
-                            sessionStorage.setItem(reportedKey, '1');
                             window.__paymentEventPending = {
                                 orderNumber: '',
                                 channel: 'promo',
-                                paidAt: new Date().toISOString()
+                                paidAt: new Date().toISOString(),
+                                reportedKey
                             };
                         }
                     } catch (e) { /* ignore */ }
