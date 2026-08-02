@@ -2024,15 +2024,48 @@
             if (typeof isPaywallEnabled === 'function' && !isPaywallEnabled() && !window.__paymentEventPending) {
                 try {
                     const reportedKey = String(FREE_MODE_STORAGE_KEY).replace(/_free_mode$/, '_payment_event_reported');
-                    if (sessionStorage.getItem(reportedKey) !== '1') {
+                    const already = sessionStorage.getItem(reportedKey) === '1';
+                    // #region agent log
+                    if (typeof debugAgentLog === 'function') {
+                        debugAgentLog('A', 'result.html:ensurePromoPending', 'promo pending decision', {
+                            paywallEnabled: false,
+                            reportedKey: reportedKey,
+                            alreadyReported: already,
+                            answerCount: Object.keys(answers || {}).length
+                        });
+                    }
+                    // #endregion
+                    if (!already) {
                         window.__paymentEventPending = {
                             orderNumber: '',
                             channel: 'promo',
                             paidAt: new Date().toISOString(),
                             reportedKey
                         };
+                        // #region agent log
+                        if (typeof debugAgentLog === 'function') {
+                            debugAgentLog('B', 'result.html:ensurePromoPending', 'pending set', { channel: 'promo' });
+                        }
+                        // #endregion
+                    } else {
+                        // #region agent log
+                        if (typeof debugAgentLog === 'function') {
+                            debugAgentLog('A', 'result.html:ensurePromoPending', 'skipped pending due to reportedKey', {
+                                reportedKey: reportedKey
+                            });
+                        }
+                        // #endregion
                     }
                 } catch (e) { /* ignore */ }
+            } else {
+                // #region agent log
+                if (typeof debugAgentLog === 'function') {
+                    debugAgentLog('C', 'result.html:ensurePromoPending', 'promo branch not entered', {
+                        paywallEnabled: typeof isPaywallEnabled === 'function' ? isPaywallEnabled() : null,
+                        hasPending: !!window.__paymentEventPending
+                    });
+                }
+                // #endregion
             }
 
             // 计算结果
@@ -2051,7 +2084,24 @@
                 });
                 if (pending.reportedKey) {
                     try { sessionStorage.setItem(pending.reportedKey, '1'); } catch (e) { /* ignore */ }
+                    // #region agent log
+                    if (typeof debugAgentLog === 'function') {
+                        debugAgentLog('A', 'result.html:afterReport', 'marked reportedKey', {
+                            reportedKey: pending.reportedKey,
+                            channel: pending.channel
+                        });
+                    }
+                    // #endregion
                 }
+            } else {
+                // #region agent log
+                if (typeof debugAgentLog === 'function') {
+                    debugAgentLog('E', 'result.html:afterReport', 'no pending to report', {
+                        hasPending: !!window.__paymentEventPending,
+                        hasReportFn: typeof reportPaymentEvent === 'function'
+                    });
+                }
+                // #endregion
             }
 
             const img = new Image();
