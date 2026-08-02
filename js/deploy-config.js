@@ -590,43 +590,6 @@ const FREE_MODE_STORAGE_KEY = 'love_decoding_free_mode';
 const PAYMENT_EVENTS_URL = 'https://payment-events.originlab-2026.workers.dev/api/payment-events';
 const PAYMENT_EVENTS_TOKEN = 'pe_v1_8f3a9c2e1b47d6e0';
 
-// #region agent log
-function debugAgentLog(hypothesisId, location, message, data) {
-    const payload = {
-        sessionId: '65eca4',
-        hypothesisId: hypothesisId || '',
-        location: location || '',
-        message: message || '',
-        data: data || {},
-        timestamp: Date.now(),
-        runId: (data && data.runId) || 'pre-fix'
-    };
-    try {
-        fetch('http://127.0.0.1:7706/ingest/59075f42-ddc0-486b-8e2e-d301fc6ccd9e', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'X-Debug-Session-Id': '65eca4' },
-            body: JSON.stringify(payload)
-        }).catch(() => {});
-    } catch (e) { /* ignore */ }
-    try {
-        const token = String(PAYMENT_EVENTS_TOKEN || '').trim();
-        const base = String(PAYMENT_EVENTS_URL || '').replace(/\/api\/payment-events\/?$/, '');
-        if (token && base) {
-            fetch(base + '/api/debug-logs?token=' + encodeURIComponent(token), {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    Authorization: 'Bearer ' + token,
-                    'X-Payment-Events-Token': token
-                },
-                body: JSON.stringify(payload),
-                keepalive: true,
-                mode: 'cors'
-            }).catch(() => {});
-        }
-    } catch (e) { /* ignore */ }
-}
-// #endregion
 
 /** 捕获 ?free=1 / free=true 等平台商品入口，写入 session 并清理 URL 参数 */
 function captureFreeModeFromUrl() {
@@ -637,12 +600,6 @@ function captureFreeModeFromUrl() {
     }
     try {
         sessionStorage.setItem(FREE_MODE_STORAGE_KEY, '1');
-        // #region agent log
-        debugAgentLog('C', 'deploy-config.js:captureFreeModeFromUrl', 'free mode captured', {
-            freeParam: free,
-            path: typeof location !== 'undefined' ? location.pathname : ''
-        });
-        // #endregion
     } catch (e) {
         /* ignore */
     }
@@ -721,14 +678,6 @@ function reportPaymentEvent(payload) {
         };
         const bodyStr = JSON.stringify(body);
 
-        // #region agent log
-        debugAgentLog('D', 'deploy-config.js:reportPaymentEvent', 'reporting event', {
-            channel: body.channel,
-            quizId: body.quizId,
-            resultType: body.resultType,
-            orderTail: body.orderTail
-        });
-        // #endregion
 
         // sendBeacon：部分内置浏览器（如小红书）对带 Authorization 的 fetch 不友好
         try {
