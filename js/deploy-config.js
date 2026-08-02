@@ -584,10 +584,11 @@ function clearPlatformCache() {
  */
 const FREE_MODE_STORAGE_KEY = 'love_decoding_free_mode';
 
-/** 捕获 ?free=1 免费入口标记，写入 session 并清理 URL 参数 */
+/** 捕获 ?free=1 / free=true 等平台商品入口，写入 session 并清理 URL 参数 */
 function captureFreeModeFromUrl() {
     const params = new URLSearchParams(window.location.search);
-    if (params.get('free') !== '1') {
+    const free = String(params.get('free') || '').trim().toLowerCase();
+    if (free !== '1' && free !== 'true' && free !== 'yes') {
         return;
     }
     try {
@@ -612,8 +613,7 @@ function isPaywallEnabled() {
 }
 
 /**
- * 支付归因上报（解锁成功后调用；失败静默，不挡解锁）
- * 部署 Worker 后把 URL 换成实际 workers.dev 地址；token 须与 Worker secret 一致。
+ * 支付归因上报（付费墙解锁 / 平台商品出结果后调用；失败静默）
  */
 const PAYMENT_EVENTS_URL = 'https://payment-events.originlab-2026.workers.dev/api/payment-events';
 const PAYMENT_EVENTS_TOKEN = 'pe_v1_8f3a9c2e1b47d6e0';
@@ -644,6 +644,17 @@ function reportPaymentEvent(payload) {
                 ? String(navigator.userAgent).slice(0, 200)
                 : ''
         };
+        const bodyStr = JSON.stringify(body);
+
+        // sendBeacon：部分内置浏览器（如小红书）对带 Authorization 的 fetch 不友好
+        try {
+            if (typeof navigator !== 'undefined' && typeof navigator.sendBeacon === 'function') {
+                const beaconUrl = url + (url.indexOf('?') >= 0 ? '&' : '?') + 'token=' + encodeURIComponent(token);
+                navigator.sendBeacon(beaconUrl, new Blob([bodyStr], { type: 'application/json' }));
+            }
+        } catch (e) {
+            /* ignore */
+        }
 
         fetch(url, {
             method: 'POST',
@@ -652,7 +663,7 @@ function reportPaymentEvent(payload) {
                 Authorization: `Bearer ${token}`,
                 'X-Payment-Events-Token': token
             },
-            body: JSON.stringify(body),
+            body: bodyStr,
             keepalive: true,
             mode: 'cors'
         }).catch(() => {});
