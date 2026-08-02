@@ -1974,10 +1974,15 @@
                 return;
             }
             // 记录单号和时间
+            const paidAt = new Date().toISOString();
             StorageUtil.set(StorageKeys.PAYMENT_ORDER_NUMBER, input);
-            StorageUtil.set(StorageKeys.PAYMENT_TIME, new Date().toISOString());
+            StorageUtil.set(StorageKeys.PAYMENT_TIME, paidAt);
             usedOrders.push(input);
             StorageUtil.set(StorageKeys.USED_ORDER_NUMBERS, usedOrders);
+            const channel = document.querySelector('.qrcode-tab.active')?.dataset?.tab === 'alipay'
+                ? 'alipay'
+                : 'wechat';
+            window.__paymentEventPending = { orderNumber: input, channel, paidAt };
             // 解锁结果
             unlockResults();
         }
@@ -2023,6 +2028,16 @@
             
             // 预加载小人图片
             const persona = getPersonaInfo();
+            if (window.__paymentEventPending && typeof reportPaymentEvent === 'function') {
+                const pending = window.__paymentEventPending;
+                window.__paymentEventPending = null;
+                reportPaymentEvent({
+                    orderNumber: pending.orderNumber,
+                    channel: pending.channel,
+                    paidAt: pending.paidAt,
+                    resultType: persona && persona.name ? persona.name : ''
+                });
+            }
             const img = new Image();
             img.src = personaJpg(persona.name);
 
